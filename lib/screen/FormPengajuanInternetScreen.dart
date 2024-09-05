@@ -20,7 +20,7 @@ class FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
   final TextEditingController _jumlahPendudukController = TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
   final TextEditingController _nomorWAController = TextEditingController();
-  
+
   bool agreeToTerms = false;
 
   String? selectedProvinsi;
@@ -69,12 +69,12 @@ class FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
           body: {
             'nama_desa': _namaDesaController.text,
             'kepala_desa': _namaKepalaDesaController.text,
-            'kecamatan': selectedKecamatan,
-            'kabupaten': selectedKabupaten,
-            'provinsi': selectedProvinsi,
-            'jumlah_penduduk': _jumlahPendudukController,
+            'kecamatan': selectedKecamatan ?? '', // tambahkan fallback jika null
+            'kabupaten': selectedKabupaten ?? '', // tambahkan fallback jika null
+            'provinsi': selectedProvinsi ?? '', // tambahkan fallback jika null
+            'jumlah_penduduk': _jumlahPendudukController.text, // pastikan ambil teks
             'nomor_wa': _nomorWAController.text,
-            'catatan': _catatanController.text,
+            'catatan': _catatanController.text.isNotEmpty ? _catatanController.text : 'Tidak ada', // fallback catatan
           },
         );
 
@@ -393,4 +393,3 @@ class FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
     );
   }
 }
-
