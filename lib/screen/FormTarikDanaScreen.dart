@@ -1,8 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import '../main.dart';
+import '../services/auth_service.dart';
 import '../utils/Colors.dart';
 import 'DashBoardScreen.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import '../utils/Constant.dart';
 
 class FormulirTarikDana extends StatefulWidget {
   @override
@@ -13,6 +19,7 @@ class FormulirTarikDanaState extends State<FormulirTarikDana> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _jumlahDanaController = TextEditingController();
   bool agreeToTerms = false;
+  File? _buktiTransfer;
 
   @override
   void initState() {
@@ -21,51 +28,107 @@ class FormulirTarikDanaState extends State<FormulirTarikDana> {
   }
 
   Future<void> init() async {
-    //
+    // Any initial setup
   }
 
-  @override
-  void setState(fn) {
-    if (mounted) super.setState(fn);
-  }
+  // Fungsi untuk mengirim data ke API
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate() &&
+        agreeToTerms &&
+        _buktiTransfer != null) {
+      try {
+        final AuthService _authService = AuthService();
+        String? token = await _authService.getToken();
+        // URL API
+        String apiUrl =
+            '${baseUrl}/api/tarikSaldo'; // Ganti dengan URL API kamu
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate() && agreeToTerms) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Text(
-              'Data berhasil dikirim',
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  DashBoardScreen().launch(context);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.green),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(
-                    'Lanjutkan',
-                    textAlign: TextAlign.center,
-                  ),
+        // Buat request multipart untuk upload file dan form data
+        var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
+
+        // Menambahkan token ke dalam header
+        request.headers['Authorization'] = 'Bearer $token';
+
+        // Tambahkan jumlah dana ke request
+        request.fields['jumlah'] = _jumlahDanaController.text;
+
+        // Tambahkan file bukti transfer
+        var stream = http.ByteStream(_buktiTransfer!.openRead());
+        var length = await _buktiTransfer!.length();
+        var multipartFile = http.MultipartFile('bukti_transfer', stream, length,
+            filename: _buktiTransfer!.path.split('/').last);
+
+        request.files.add(multipartFile);
+
+        // Kirim request
+        var response = await request.send();
+
+        // Cek hasil response
+        if (response.statusCode == 201) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Text(
+                  'Data berhasil dikirim',
+                  textAlign: TextAlign.center,
                 ),
-              ),
-            ],
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      DashBoardScreen().launch(context);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.green),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        'Lanjutkan',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           );
-        },
-      );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Gagal mengirim data. Status Code: ${response.statusCode}')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: $e')),
+        );
+      }
     } else {
       if (!agreeToTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Anda harus menyetujui syarat dan ketentuan')),
         );
       }
+      if (_buktiTransfer == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Anda harus mengunggah bukti transfer')),
+        );
+      }
+    }
+  }
+
+  // Fungsi untuk memilih file dari galeri
+  Future<void> _pickFile() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _buktiTransfer = File(pickedFile.path);
+      });
     }
   }
 
@@ -74,12 +137,14 @@ class FormulirTarikDanaState extends State<FormulirTarikDana> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text('Formulir Pengajuan Tarik Dana', style: boldTextStyle(size: 18)),
+        title: Text('Formulir Pengajuan Tarik Dana',
+            style: boldTextStyle(size: 18)),
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: Icon(Icons.arrow_back_ios, color: appStore.isDarkModeOn ? white : black),
+          icon: Icon(Icons.arrow_back_ios,
+              color: appStore.isDarkModeOn ? white : black),
           iconSize: 18,
         ),
         centerTitle: true,
@@ -92,7 +157,8 @@ class FormulirTarikDanaState extends State<FormulirTarikDana> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Jumlah dana yang ingin ditarik', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              Text('Jumlah dana yang ingin ditarik',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               SizedBox(height: 4),
               TextFormField(
                 controller: _jumlahDanaController,
@@ -110,12 +176,14 @@ class FormulirTarikDanaState extends State<FormulirTarikDana> {
                 },
               ),
               SizedBox(height: 14),
-              Text(
-                'Syarat dan Ketentuan\n\n'
-                '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n\n'
-                '2. Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.\n\n'
-                '3. Informasi pribadi pengguna dilindungi sesuai Kebijakan Privasi. VestNet berkomitmen untuk menjaga kerahasiaan dan keamanan data pribadi pengguna sesuai dengan kebijakan privasi yang berlaku.',
-                style: TextStyle(fontSize: 14),
+              Text('Unggah bukti transfer',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              SizedBox(height: 4),
+              MaterialButton(
+                onPressed: _pickFile,
+                color: Colors.blue,
+                child: Text('Pilih File'),
+                textColor: Colors.white,
               ),
               SizedBox(height: 16),
               Row(
@@ -131,7 +199,8 @@ class FormulirTarikDanaState extends State<FormulirTarikDana> {
                   Expanded(
                     child: Text(
                       'Saya setuju dengan syarat dan ketentuan yang berlaku',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

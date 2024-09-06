@@ -20,6 +20,7 @@ dependencies:
   flutter_vector_icons: ^2.0.0
   google_fonts: ^6.1.0
   image_picker: ^0.8.4+3
+  file_picker: ^5.0.0
   shared_preferences: ^2.0.6
   dio: ^5.0.0
 

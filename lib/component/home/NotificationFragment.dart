@@ -22,16 +22,18 @@ class _NotificationFragmentState extends State<NotificationFragment> {
     // For now, I'll use dummy data for demonstration purposes.
     notifications = [
       NotificationModel(
-          title: 'Investasi Anda Berhasil!',
-          message: 'Terima kasih telah berinvestasi di Proyek Desa Kedarpen.',
-          date: DateTime.now(),
-          icon: 'images/icon_invest.png'),
+        title: 'Investasi Anda Berhasil!',
+        message: 'Terima kasih telah berinvestasi di Proyek Desa Kedarpen.',
+        date: DateTime.now(),
+        icon: Icons.check_circle, // Menggunakan ikon bawaan dari Flutter
+      ),
       NotificationModel(
-          title: 'Proyek Baru Tersedia!',
-          message: 'Jelajahi Proyek Desa Karangkobar dan Mulai Investasi Anda Hari Ini.',
-          date: DateTime.now().subtract(Duration(hours: 9)),
-          icon: 'images/icon_project.png'),
-      // Add more dummy data here
+        title: 'Proyek Baru Tersedia!',
+        message:
+            'Jelajahi Proyek Desa Karangkobar dan Mulai Investasi Anda Hari Ini.',
+        date: DateTime.now().subtract(Duration(hours: 9)),
+        icon: Icons.new_releases, // Ikon untuk proyek baru
+      ),
     ];
 
     setState(() {});
@@ -43,7 +45,8 @@ class _NotificationFragmentState extends State<NotificationFragment> {
 
     // Group notifications by date
     for (var notification in notifications) {
-      String formattedDate = DateFormat('dd MMM yyyy').format(notification.date);
+      String formattedDate =
+          DateFormat('dd MMM yyyy').format(notification.date);
       if (!groupedNotifications.containsKey(formattedDate)) {
         groupedNotifications[formattedDate] = [];
       }
@@ -106,10 +109,11 @@ class NotificationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Image.asset(notification.icon, width: 40, height: 40),
+      leading: Icon(notification.icon, size: 40),
       title: Text(notification.title),
       subtitle: Text(notification.message),
       trailing: Text(DateFormat('HH:mm').format(notification.date)),
     );
   }
 }
+

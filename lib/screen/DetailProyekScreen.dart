@@ -29,7 +29,8 @@ class DetailProyekState extends State<DetailProyek> {
 
   // Ubah fungsi ini untuk mengembalikan ProyekModel
   Future<ProyekModel> fetchProjectDetails(int projectId) async {
-    final response = await http.get(Uri.parse('${baseUrl}api/proyek/$projectId'));
+    final response =
+        await http.get(Uri.parse('${baseUrl}api/proyek/$projectId'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -44,7 +45,8 @@ class DetailProyekState extends State<DetailProyek> {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
     final double imageHeight = screenHeight / 5;
-    final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    final currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       appBar: AppBar(
@@ -54,14 +56,16 @@ class DetailProyekState extends State<DetailProyek> {
           future: projectDetails,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text("Projek Desa", style: boldTextStyle(size: 18)); // Default saat loading
+              return Text("Projek Desa",
+                  style: boldTextStyle(size: 18)); // Default saat loading
             } else if (snapshot.hasData) {
               return Text(
                 'Projek Desa ${snapshot.data!.desa}', // Menampilkan nama desa di judul
                 style: boldTextStyle(size: 18),
               );
             } else {
-              return Text('Projek Desa', style: boldTextStyle(size: 18)); // Jika error
+              return Text('Projek Desa',
+                  style: boldTextStyle(size: 18)); // Jika error
             }
           },
         ),
@@ -104,21 +108,25 @@ class DetailProyekState extends State<DetailProyek> {
                         color: TextSecondaryColor,
                       ),
                       softWrap: true, // Mengizinkan teks untuk membungkus
-                      maxLines: null, // Mengizinkan teks untuk memiliki baris tambahan
+                      maxLines:
+                          null, // Mengizinkan teks untuk memiliki baris tambahan
                     ),
                     SizedBox(height: 8), // Tambahkan sedikit spasi
                     Container(
                       width: screenWidth,
                       height: imageHeight,
-                      child: Image.asset(
-                        "images/cp_card1.png",
-                        fit: BoxFit.cover), // Mengambil data dari model
+                      child: Image.asset("images/cp_card1.png",
+                          fit: BoxFit.cover), // Mengambil data dari model
                     ),
-                    SizedBox(height: 8), // Menambahkan space setelah gambar sebelum alamat
+                    SizedBox(
+                        height:
+                            8), // Menambahkan space setelah gambar sebelum alamat
                     // Address Text dengan bold
                     Text(
                       '${proyek.desa}, ${proyek.kecamatan}, ${proyek.kabupaten}',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold), // Bold address
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold), // Bold address
                     ),
                     Divider(
                       color: Colors.black,
@@ -215,18 +223,25 @@ class DetailProyekState extends State<DetailProyek> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('BEP',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: grey,
-                                fontWeight: FontWeight.w900)),
-                        Text(proyek.bep.toString(),
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: GreenBoldColor)),
+                        Text(
+                          'BEP',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: grey,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          '${proyek.bep}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: GreenBoldColor,
+                          ),
+                        ),
                       ],
                     ),
+
                     // SizedBox(height: 16),
 
                     // Text(
@@ -259,7 +274,10 @@ class DetailProyekState extends State<DetailProyek> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => FormInvestasi(projectId: proyek.idProyek, desaName: proyek.desa,),
+                              builder: (context) => FormInvestasi(
+                                projectId: proyek.idProyek,
+                                desaName: proyek.desa,
+                              ),
                             ),
                           );
                         },

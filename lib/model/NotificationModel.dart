@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
+
 class NotificationModel {
   final String title;
   final String message;
   final DateTime date;
-  final String icon;
+  final IconData icon;
 
   NotificationModel({
     required this.title,

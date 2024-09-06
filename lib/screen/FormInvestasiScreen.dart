@@ -6,6 +6,8 @@ import '../utils/Constant.dart';
 import 'DashBoardScreen.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 class FormInvestasi extends StatefulWidget {
   final int projectId;
@@ -19,14 +21,14 @@ class FormInvestasi extends StatefulWidget {
 
 class FormInvestasiState extends State<FormInvestasi> {
   final _formKey = GlobalKey<FormState>();
-  final currencyFormatter =
-      NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+  final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
   int? _selectedAmount;
   bool agreeToTerms = false;
+  File? _selectedFile;
 
   final List<int> _investmentOptions = [
-    1000000,
     2000000,
+    3000000,
     5000000,
     10000000,
     15000000,
@@ -43,53 +45,60 @@ class FormInvestasiState extends State<FormInvestasi> {
     setStatusBarColor(Colors.transparent);
   }
 
-  @override
-  void setState(fn) {
-    if (mounted) super.setState(fn);
-  }
-
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedFile = File(result.files.single.path!);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tidak ada file yang dipilih')),
+      );
+    }
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate() &&
         agreeToTerms &&
-        _selectedAmount != null) {
+        _selectedAmount != null &&
+        _selectedFile != null) {
       try {
         final token = await getToken();
-
         if (token == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Token tidak ditemukan, silakan login kembali')),
+            SnackBar(content: Text('Token tidak ditemukan, silakan login kembali')),
           );
           return;
         }
 
-        // Call the API to invest in the project
-        final response = await http.post(
-          Uri.parse('${baseUrl}api/investInProject'),
-          body: {
-            'id_proyek': widget.projectId.toString(),
-            'total_investasi': _selectedAmount.toString(),
-          },
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Accept': 'application/json',
-          },
-        );
+        var request = http.MultipartRequest('POST', Uri.parse('${baseUrl}api/investInProject'));
+        request.headers['Authorization'] = 'Bearer $token';
+        request.fields['id_proyek'] = widget.projectId.toString();
+        request.fields['total_investasi'] = _selectedAmount.toString();
+
+        // Upload bukti transfer
+        request.files.add(await http.MultipartFile.fromPath(
+          'bukti_transfer', _selectedFile!.path,
+        ));
+
+        final response = await request.send();
 
         if (response.statusCode == 201) {
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                content: Text(
-                  'Data berhasil dikirim',
-                  textAlign: TextAlign.center,
-                ),
+                content: Text('Data berhasil dikirim', textAlign: TextAlign.center),
                 actions: [
                   Center(
                     child: OutlinedButton(
@@ -102,9 +111,7 @@ class FormInvestasiState extends State<FormInvestasi> {
                       child: Text(
                         'Lanjutkan',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: PrimaryColor,
-                        ),
+                        style: TextStyle(color: PrimaryColor),
                       ),
                     ),
                   ),
@@ -131,6 +138,11 @@ class FormInvestasiState extends State<FormInvestasi> {
       if (_selectedAmount == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Anda harus memilih jumlah investasi')),
+        );
+      }
+      if (_selectedFile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Anda harus mengunggah bukti transaksi')),
         );
       }
     }
@@ -165,23 +177,9 @@ class FormInvestasiState extends State<FormInvestasi> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Metode Pembayaran',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                Text(
-                  'Transfer - Bank Mandiri\nNomer Rekening: 000000000\nAtas Nama: Toni Anwar',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Tunai\nSilakan hubungi kami untuk detail lebih lanjut.',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
-                ),
-                SizedBox(height: 16),
+                // Jumlah Investasi
                 Text('Jumlah Investasi',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
                 GridView.builder(
                   shrinkWrap: true,
@@ -216,11 +214,44 @@ class FormInvestasiState extends State<FormInvestasi> {
                     );
                   },
                 ),
+
                 SizedBox(height: 16),
+
+                // Metode Pembayaran
+                Text('Metode Pembayaran',
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Transfer - Bank Mandiri',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Nomer Rekening: 000000000\nAtas Nama: Toni Anwar',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Tunai\nSilakan hubungi kami untuk detail lebih lanjut.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 16),
+
+                // Tombol Unggah Bukti Transfer
                 MaterialButton(
-                  onPressed: () {
-                    // Handle upload proof of transaction
-                  },
+                  onPressed: _pickFile,
                   color: PrimaryColor,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -230,7 +261,9 @@ class FormInvestasiState extends State<FormInvestasi> {
                       Icon(Icons.upload_file, color: Colors.white),
                       SizedBox(width: 8),
                       Text(
-                        "Upload Bukti Transaksi *jpg",
+                        _selectedFile != null
+                            ? 'Bukti dipilih: ${_selectedFile!.path.split('/').last}'
+                            : "Upload Bukti Transaksi *jpg",
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
@@ -241,9 +274,11 @@ class FormInvestasiState extends State<FormInvestasi> {
                   textColor: Color(0xffffffff),
                   height: 40,
                 ),
+
                 SizedBox(height: 16),
+
                 Text(
-                  termsAndConditions,
+                  'Dengan berinvestasi, Anda menyetujui syarat dan ketentuan yang berlaku.',
                   style: TextStyle(fontSize: 12),
                 ),
                 SizedBox(height: 16),
