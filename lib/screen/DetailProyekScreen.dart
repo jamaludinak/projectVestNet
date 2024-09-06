@@ -101,6 +101,7 @@ class DetailProyekState extends State<DetailProyek> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: TextSecondaryColor,
                       ),
                       softWrap: true, // Mengizinkan teks untuk membungkus
                       maxLines: null, // Mengizinkan teks untuk memiliki baris tambahan
@@ -109,7 +110,9 @@ class DetailProyekState extends State<DetailProyek> {
                     Container(
                       width: screenWidth,
                       height: imageHeight,
-                      child: Image.network(proyek.fotoBanner), // Mengambil data dari model
+                      child: Image.asset(
+                        "images/cp_card1.png",
+                        fit: BoxFit.cover), // Mengambil data dari model
                     ),
                     SizedBox(height: 8), // Menambahkan space setelah gambar sebelum alamat
                     // Address Text dengan bold

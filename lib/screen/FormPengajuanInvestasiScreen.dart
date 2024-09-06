@@ -213,6 +213,7 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                   file: _ktpFile,
                   onTap: _pickKtpImage,
                 ),
+                SizedBox(height: 4),
                 UploadButtonComponent(
                   label: "Upload Foto NPWP *jpg",
                   file: _npwpFile,

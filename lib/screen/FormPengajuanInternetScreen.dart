@@ -1,151 +1,141 @@
 import 'package:flutter/material.dart';
-import 'package:nb_utils/nb_utils.dart';
 import 'package:http/http.dart' as http;
-import 'dart:io';
-
-import '../main.dart';
+import 'package:nb_utils/nb_utils.dart';
+import 'dart:convert';
+import '../../services/auth_service.dart';
 import '../utils/Colors.dart';
 import '../utils/Constant.dart';
 import 'DashBoardScreen.dart';
 
 class FormulirPengajuanInternet extends StatefulWidget {
   @override
-  FormulirPengajuanInternetState createState() => FormulirPengajuanInternetState();
+  _FormulirPengajuanInternetState createState() =>
+      _FormulirPengajuanInternetState();
 }
 
-class FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
+class _FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _namaDesaController = TextEditingController();
-  final TextEditingController _namaKepalaDesaController = TextEditingController();
-  final TextEditingController _jumlahPendudukController = TextEditingController();
+  final TextEditingController _namaKepalaDesaController =
+      TextEditingController();
+  final TextEditingController _provinsiController = TextEditingController();
+  final TextEditingController _kabupatenController = TextEditingController();
+  final TextEditingController _kecamatanController = TextEditingController();
+  final TextEditingController _jumlahPendudukController =
+      TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
   final TextEditingController _nomorWAController = TextEditingController();
 
   bool agreeToTerms = false;
-
-  String? selectedProvinsi;
-  String? selectedKabupaten;
-  String? selectedKecamatan;
+  bool isLoading = false;
 
   @override
-  void initState() {
-    super.initState();
-    init();
-  }
-
-  Future<void> init() async {
-    //
-  }
-
-  @override
-  void setState(fn) {
-    if (mounted) super.setState(fn);
-  }
-
-  List<String> getKabupaten() {
-    if (selectedProvinsi != null) {
-      return kabupatenList[selectedProvinsi!] ?? [];
-    }
-    return [];
-  }
-
-  List<String> getKecamatan() {
-    if (selectedKabupaten != null) {
-      return kecamatanList[selectedKabupaten!] ?? [];
-    }
-    return [];
+  void dispose() {
+    _namaDesaController.dispose();
+    _namaKepalaDesaController.dispose();
+    _provinsiController.dispose();
+    _kabupatenController.dispose();
+    _kecamatanController.dispose();
+    _jumlahPendudukController.dispose();
+    _catatanController.dispose();
+    _nomorWAController.dispose();
+    super.dispose();
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate() && agreeToTerms) {
-      try {
-        String? token = await getToken();
-        var response = await http.post(
-          Uri.parse('${baseUrl}/api/submitPengajuanInternet'),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Accept': 'application/json',
-          },
-          body: {
-            'nama_desa': _namaDesaController.text,
-            'kepala_desa': _namaKepalaDesaController.text,
-            'kecamatan': selectedKecamatan ?? '', // tambahkan fallback jika null
-            'kabupaten': selectedKabupaten ?? '', // tambahkan fallback jika null
-            'provinsi': selectedProvinsi ?? '', // tambahkan fallback jika null
-            'jumlah_penduduk': _jumlahPendudukController.text, // pastikan ambil teks
-            'nomor_wa': _nomorWAController.text,
-            'catatan': _catatanController.text.isNotEmpty ? _catatanController.text : 'Tidak ada', // fallback catatan
-          },
-        );
-
-        if (response.statusCode == 201) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                content: Text(
-                  'Pengajuan internet berhasil dikirim dan akan diproses.',
-                  textAlign: TextAlign.center, // Membuat teks rata tengah
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Tutup dialog
-                      DashBoardScreen().launch(context); // Kembali ke halaman dashboard
-                    },
-                    child: Text(
-                      'Lanjutkan',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal mengirim pengajuan internet.')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
-        );
-      }
-    } else {
-      if (!agreeToTerms) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Anda harus menyetujui syarat dan ketentuan')),
-        );
-      }
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Form is not valid! Please check your input.')),
+      );
+      return;
     }
-  }
 
-  Future<String?> getToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    if (!agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You must agree to the terms and conditions')),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final AuthService _authService = AuthService();
+      String? token = await _authService.getToken();
+
+      var response = await http.post(
+        Uri.parse('${baseUrl}api/submitPengajuanInternet'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'nama_desa': _namaDesaController.text,
+          'kepala_desa': _namaKepalaDesaController.text,
+          'provinsi': _provinsiController.text,
+          'kabupaten': _kabupatenController.text,
+          'kecamatan': _kecamatanController.text,
+          'jumlah_penduduk': _jumlahPendudukController.text,
+          'nomor_wa': _nomorWAController.text,
+          'catatan': _catatanController.text.isNotEmpty
+              ? _catatanController.text
+              : 'Tidak ada',
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              content: Text(
+                'Pengajuan internet berhasil dikirim dan akan diproses.',
+                textAlign: TextAlign.center,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => DashBoardScreen()));
+                  },
+                  child: Text('Lanjutkan'),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print('Error: ${response.statusCode} - ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengirim pengajuan internet.')),
+        );
+      }
+    } catch (e) {
+      print('Exception: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Text('Formulir Pengajuan Internet', style: boldTextStyle(size: 18)),
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(Icons.arrow_back_ios, color: appStore.isDarkModeOn ? white : black),
-          iconSize: 18,
-        ),
+        title:
+            Text('Formulir Pengajuan Internet', style: boldTextStyle(size: 18)),
         centerTitle: true,
-        elevation: 0.0,
       ),
       body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).requestFocus(FocusNode());
-        },
+        onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),
           child: Form(
@@ -153,202 +143,38 @@ class FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Nama Desa', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                TextFormField(
-                  controller: _namaDesaController,
-                  decoration: InputDecoration(
-                    hintText: 'Masukkan nama desa',
-                    border: OutlineInputBorder(),
-                  ),
-                  style: TextStyle(fontSize: 14),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Belum diisi';
-                    }
-                    return null;
-                  },
-                ),
+                _buildTextField(
+                    _namaDesaController, 'Nama Desa', 'Masukkan nama desa'),
                 SizedBox(height: 14),
-                Text('Nama Kepala Desa', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                TextFormField(
-                  controller: _namaKepalaDesaController,
-                  decoration: InputDecoration(
-                    hintText: 'Masukkan nama kepala desa',
-                    border: OutlineInputBorder(),
-                  ),
-                  style: TextStyle(fontSize: 14),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Belum diisi';
-                    }
-                    return null;
-                  },
-                ),
+                _buildTextField(_namaKepalaDesaController, 'Nama Kepala Desa',
+                    'Masukkan nama kepala desa'),
                 SizedBox(height: 14),
-                Text('Provinsi', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                DropdownButtonFormField<String>(
-                  value: selectedProvinsi,
-                  decoration: InputDecoration(
-                    hintText: 'Pilih Provinsi',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: provinsiList
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value, style: TextStyle(fontSize: 14)),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedProvinsi = newValue;
-                      selectedKabupaten = null;
-                      selectedKecamatan = null;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Belum diisi';
-                    }
-                    return null;
-                  },
-                ),
+                _buildTextField(
+                    _provinsiController, 'Provinsi', 'Masukkan Provinsi'),
                 SizedBox(height: 14),
-                Text('Kabupaten', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                DropdownButtonFormField<String>(
-                  value: selectedKabupaten,
-                  decoration: InputDecoration(
-                    hintText: 'Pilih Kabupaten',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: getKabupaten()
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value, style: TextStyle(fontSize: 14)),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedKabupaten = newValue;
-                      selectedKecamatan = null;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Belum diisi';
-                    }
-                    return null;
-                  },
-                ),
+                _buildTextField(
+                    _kabupatenController, 'Kabupaten', 'Masukkan Kabupaten'),
                 SizedBox(height: 14),
-                Text('Kecamatan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                Autocomplete<String>(
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    if (textEditingValue.text.isEmpty) {
-                      return const Iterable<String>.empty();
-                    }
-                    return getKecamatan().where((String option) {
-                      return option.contains(textEditingValue.text.toLowerCase());
-                    });
-                  },
-                  onSelected: (String selection) {
-                    setState(() {
-                      selectedKecamatan = selection;
-                    });
-                  },
-                  fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-                    return TextFormField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      decoration: InputDecoration(
-                        hintText: 'Pilih atau ketik Kecamatan',
-                        border: OutlineInputBorder(),
-                      ),
-                      style: TextStyle(fontSize: 14),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Belum diisi';
-                        }
-                        return null;
-                      },
-                    );
-                  },
-                ),
+                _buildTextField(
+                    _kecamatanController, 'Kecamatan', 'Masukkan Kecamatan'),
                 SizedBox(height: 14),
-                Text('Jumlah Penduduk', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                TextFormField(
-                  controller: _jumlahPendudukController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: 'Masukkan jumlah penduduk',
-                    border: OutlineInputBorder(),
-                  ),
-                  style: TextStyle(fontSize: 14),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Belum diisi';
-                    }
-                    return null;
-                  },
-                ),
+                _buildTextField(_jumlahPendudukController, 'Jumlah Penduduk',
+                    'Masukkan jumlah penduduk',
+                    keyboardType: TextInputType.number),
                 SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Catatan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 4),
-                          TextFormField(
-                            controller: _catatanController,
-                            decoration: InputDecoration(
-                              hintText: 'Masukkan Catatan',
-                              border: OutlineInputBorder(),
-                            ),
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Nomor WhatsApp', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 4),
-                          TextFormField(
-                            controller: _nomorWAController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: 'Masukkan nomor',
-                              border: OutlineInputBorder(),
-                            ),
-                            style: TextStyle(fontSize: 14),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Belum diisi';
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                _buildTextField(_nomorWAController, 'Nomor WhatsApp',
+                    'Masukkan nomor WhatsApp',
+                    keyboardType: TextInputType.phone),
                 SizedBox(height: 14),
+                _buildTextField(_catatanController, 'Catatan (Optional)',
+                    'Masukkan Catatan'),
+                SizedBox(height: 16),
                 Text(
-                  'Syarat dan Ketentuan...',
-                  style: TextStyle(fontSize: 12),
+                  'Syarat dan Ketentuan\n\n'
+                  '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n\n'
+                  '2. Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.\n\n'
+                  '3. Informasi pribadi pengguna dilindungi sesuai Kebijakan Privasi. VestNet berkomitmen untuk menjaga kerahasiaan dan keamanan data pribadi pengguna sesuai dengan kebijakan privasi yang berlaku.',
+                  style: TextStyle(fontSize: 14),
                 ),
                 SizedBox(height: 16),
                 Row(
@@ -363,8 +189,9 @@ class FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
                     ),
                     Expanded(
                       child: Text(
-                        'Saya setuju dengan Syarat dan Ketentuan',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        'Saya setuju dengan syarat dan ketentuan yang berlaku',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -375,10 +202,12 @@ class FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
                     onPressed: _submitForm,
                     color: PrimaryColor,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0)),
                     child: Text(
                       "Kirim",
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
                     ),
                     textColor: Color(0xffffffff),
                     height: 40,
@@ -390,6 +219,34 @@ class FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
           ),
         ),
       ),
+    );
+  }
+
+  // Helper function to build a text field
+  Widget _buildTextField(
+      TextEditingController controller, String label, String hintText,
+      {TextInputType keyboardType = TextInputType.text}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        SizedBox(height: 4),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: hintText,
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Belum diisi';
+            }
+            return null;
+          },
+        ),
+      ],
     );
   }
 }
