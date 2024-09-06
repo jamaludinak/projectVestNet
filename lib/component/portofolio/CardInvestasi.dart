@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:vestnett/screen/RiwayatMutasiScreen.dart';
 import 'dart:convert';
 
+import '../../services/auth_service.dart';
 import '../../utils/Colors.dart';
 import '../../utils/Constant.dart';
 
@@ -27,20 +29,28 @@ class CardInvestasiState extends State<CardInvestasi> {
   Future<void> fetchInvestDataDetail() async {
     try {
       // Lakukan permintaan ke API
+      final AuthService _authService = AuthService();
+      String? token = await _authService.getToken();
       final response = await http.get(
         Uri.parse('${baseUrl}api/getInvestDataDetail'),
         headers: {
-          'Authorization': 'Bearer your_token',
+          'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+
+        // Pastikan data API sesuai dan lakukan parsing data
         setState(() {
-          totalInvestasi = data['totalInvestasi'].toDouble();
-          penghasilan = data['penghasilan'].toDouble();
-          roi = data['roi'].toDouble();
+          // totalInvestasi di-convert dari string ke double
+          totalInvestasi = double.tryParse(data['totalInvestasi']) ?? 0.0;
+
+          // penghasilan dan roi langsung di-cast ke double
+          penghasilan = (data['penghasilan'] as num).toDouble();
+          roi = (data['roi'] as num).toDouble();
+
           isLoading = false;
         });
       } else {
@@ -56,7 +66,8 @@ class CardInvestasiState extends State<CardInvestasi> {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    final currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
     return isLoading
         ? Center(child: CircularProgressIndicator())
@@ -97,7 +108,7 @@ class CardInvestasiState extends State<CardInvestasi> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // Aksi ketika riwayat ditekan, misalnya navigasi ke halaman riwayat
+                          
                         },
                         child: Row(
                           children: [
@@ -171,7 +182,8 @@ class CardInvestasiState extends State<CardInvestasi> {
                             ),
                           ),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               border: Border.all(color: BorderText, width: 1),
                               borderRadius: BorderRadius.circular(8),

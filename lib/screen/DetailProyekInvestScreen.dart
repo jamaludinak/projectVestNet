@@ -29,7 +29,7 @@ class _DetailProyekInvestState extends State<DetailProyekInvest> {
   Future<void> fetchProjectData() async {
     try {
       final response = await http.get(
-        Uri.parse('${baseUrl}getProjectInvestDetail/${widget.projectId}'),
+        Uri.parse('${baseUrl}/api/getProjectInvestDetail/${widget.projectId}'),
         headers: {
           'Authorization': 'Bearer your_token',
           'Accept': 'application/json',

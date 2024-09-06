@@ -335,7 +335,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
 
   Future<Map<String, dynamic>> fetchProjectDetails(int projectId) async {
     final response = await http
-        .get(Uri.parse('${baseUrl}getProjectInvestDetail/$projectId'));
+        .get(Uri.parse('${baseUrl}api/getProjectInvestDetail/$projectId'));
 
     if (response.statusCode == 200) {
       return json.decode(response.body);
@@ -359,7 +359,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
         } else if (!snapshot.hasData || snapshot.data == null) {
           return Center(child: Text('No project data available'));
         } else {
-          var project = snapshot.data!['project'];
+          var project = snapshot.data!;
 
           return Container(
             margin: EdgeInsets.all(16),
@@ -383,8 +383,8 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                   flex: 1,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network(
-                      project['foto_banner'],
+                    child: Image.asset(
+                      'assets/images/proyek_default.png', // Gambar lokal
                       fit: BoxFit.cover,
                       width: 120,
                       height: 120,
@@ -398,9 +398,9 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        project['nama_proyek'],
+                        project['projectName'],
                         style: TextStyle(
-                          color: TextSecondaryColor,
+                          color: Colors.black87,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -415,7 +415,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                         ),
                       ),
                       Text(
-                        currencyFormatter.format(project['total_investasi']),
+                        currencyFormatter.format(double.parse(project['totalInvestasi'])),
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -432,7 +432,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                         ),
                       ),
                       Text(
-                        '${project['presentase_saham']}%',
+                        '${project['presentasiSaham'].toStringAsFixed(2)}%', // Format 2 desimal
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -449,7 +449,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                         ),
                       ),
                       Text(
-                        currencyFormatter.format(project['total_bagi_hasil']),
+                        currencyFormatter.format(double.parse(project['totalBagiHasil'])),
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,

@@ -12,24 +12,21 @@ class PortofolioScreen extends StatefulWidget {
 }
 
 class PortofolioScreenState extends State<PortofolioScreen> {
-  List<int> investedProjectIds = [];
+  List<int> investedProjectIds = []; // Menyimpan ID proyek yang diinvestasi
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    init();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fetchUserInvestedProjects(); // Panggil API setelah widget dibangun
+    });
   }
 
-  Future<void> init() async {
-    setStatusBarColor(Colors.transparent);
-    await fetchUserInvestedProjects();
-  }
-
+  // Fungsi buat ambil data proyek yang udah diinvest user
   Future<void> fetchUserInvestedProjects() async {
     try {
-      String? token =
-          await getToken(); // Fetch the token from secure storage or other methods
+      String? token = await getToken(); // Ambil token dari storage
       final response = await http.get(
         Uri.parse('${baseUrl}api/user-invested-projects'),
         headers: {
@@ -38,26 +35,29 @@ class PortofolioScreenState extends State<PortofolioScreen> {
         },
       );
 
+      // Debugging: Print response dari API
+      print("Response from user-invested-projects: ${response.body}");
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          investedProjectIds =
-              List<int>.from(data['projects'].map((p) => p['id_proyek']));
+          // Ambil list ID proyek dari 'invested_project_ids'
+          investedProjectIds = List<int>.from(data['invested_project_ids']);
           isLoading = false;
         });
       } else {
         throw Exception('Failed to load invested projects');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error fetching projects: $e');
       setState(() {
         isLoading = false;
       });
     }
   }
 
+  // Fungsi buat ambil token dari storage
   Future<String?> getToken() async {
-    // Replace this with your method to retrieve the token
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
@@ -80,15 +80,13 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
+                  // Judul Daftar Proyek Yang Didukung
                   CardInvestasi(),
-                  24.height,
                   Padding(
                     padding: EdgeInsets.only(left: 16, right: 16),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
                       children: [
+                        8.height,
                         Text(
                           "Daftar Proyek Yang Didukung",
                           textAlign: TextAlign.start,
@@ -102,7 +100,10 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                       ],
                     ),
                   ),
+
                   8.height,
+
+                  // List proyek yang didukung
                   Container(
                     child: ListView.builder(
                       shrinkWrap: true,
@@ -116,11 +117,12 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => DetailProyekInvest(
-                                  projectId: '$projectId',
+                                  projectId: '$projectId', // Kirim ID proyek ke halaman detail
                                 ),
                               ),
                             );
                           },
+                          // Tampilkan ProjectCardInvest berdasarkan ID proyek
                           child: ProjectCardInvest(projectId: projectId),
                         );
                       },
