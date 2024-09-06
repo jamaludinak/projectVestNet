@@ -67,7 +67,13 @@ class PortofolioScreenState extends State<PortofolioScreen> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        title: Text("Portofolio", style: boldTextStyle(size: 18)),
+        title:Text(
+          "Portofolio",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: false,
         backgroundColor: context.cardColor,
         automaticallyImplyLeading: false,
@@ -117,7 +123,7 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => DetailProyekInvest(
-                                  projectId: '$projectId', // Kirim ID proyek ke halaman detail
+                                  projectId: projectId, // Kirim ID proyek ke halaman detail
                                 ),
                               ),
                             );

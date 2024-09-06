@@ -108,7 +108,12 @@ class CardInvestasiState extends State<CardInvestasi> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RiwayatMutasiScreen(),
+                            ),
+                          );
                         },
                         child: Row(
                           children: [

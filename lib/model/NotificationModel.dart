@@ -1,24 +1,13 @@
-import 'package:flutter/material.dart';
-
 class NotificationModel {
-  final String title;
-  final String message;
-  final DateTime date;
-  final IconData icon;
+  String title;
+  String message;
+  DateTime date;
+  String type;  // Tambahkan field ini untuk menyimpan jenis notifikasi
 
   NotificationModel({
     required this.title,
     required this.message,
     required this.date,
-    required this.icon,
+    required this.type,  // Tambahkan ini
   });
-
-  factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    return NotificationModel(
-      title: json['title'],
-      message: json['message'],
-      date: DateTime.parse(json['date']),
-      icon: json['icon'],
-    );
-  }
 }

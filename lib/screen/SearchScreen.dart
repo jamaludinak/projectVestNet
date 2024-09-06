@@ -18,7 +18,7 @@ class SearchScreenState extends State<SearchScreen> {
   List<ProyekModel> allProjects = [];
   List<ProyekModel> filteredProjects = [];
   String selectedKabupaten = '';
-  bool isLoading = false; // Untuk menampilkan indikator loading
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -55,20 +55,18 @@ class SearchScreenState extends State<SearchScreen> {
   }
 
   void searchProjects(String query) {
-    if (selectedKabupaten.isEmpty) {  // Hanya izinkan pencarian jika tidak ada kabupaten yang dipilih
-      setState(() {
-        if (query.isEmpty) {
-          filteredProjects = allProjects; // Jika pencarian kosong dan tidak ada filter kabupaten
-        } else {
-          filteredProjects = allProjects.where((project) {
-            final desaName = project.desa?.toLowerCase() ?? '';
-            final input = query.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        filteredProjects = allProjects; // Jika pencarian kosong, tampilkan semua proyek
+      } else {
+        filteredProjects = allProjects.where((project) {
+          final desaName = project.desa?.toLowerCase() ?? '';
+          final input = query.toLowerCase();
 
-            return desaName.contains(input);
-          }).toList();
-        }
-      });
-    }
+          return desaName.contains(input);
+        }).toList();
+      }
+    });
   }
 
   void filterByKabupaten(String kabupaten) async {
@@ -126,7 +124,17 @@ class SearchScreenState extends State<SearchScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
                       controller: searchController,
-                      onChanged: searchProjects,
+                      onChanged: (value) {
+                        if (value.isEmpty && selectedKabupaten.isEmpty) {
+                          // Jika pencarian kosong dan tidak ada filter kabupaten, tampilkan semua proyek
+                          setState(() {
+                            filteredProjects = allProjects;
+                          });
+                        }
+                      },
+                      onSubmitted: (value) {
+                        searchProjects(value);  // Panggil pencarian saat pengguna menekan enter
+                      },
                       textAlign: TextAlign.left,
                       maxLines: 1,
                       enabled: selectedKabupaten.isEmpty, // Nonaktifkan TextField jika filter kabupaten aktif

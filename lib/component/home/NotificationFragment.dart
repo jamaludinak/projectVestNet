@@ -25,14 +25,14 @@ class _NotificationFragmentState extends State<NotificationFragment> {
         title: 'Investasi Anda Berhasil!',
         message: 'Terima kasih telah berinvestasi di Proyek Desa Kedarpen.',
         date: DateTime.now(),
-        icon: Icons.check_circle, // Menggunakan ikon bawaan dari Flutter
+        type: 'investasi', // Tipe investasi
       ),
       NotificationModel(
         title: 'Proyek Baru Tersedia!',
         message:
             'Jelajahi Proyek Desa Karangkobar dan Mulai Investasi Anda Hari Ini.',
         date: DateTime.now().subtract(Duration(hours: 9)),
-        icon: Icons.new_releases, // Ikon untuk proyek baru
+        type: 'proyek', // Tipe proyek
       ),
     ];
 
@@ -55,7 +55,13 @@ class _NotificationFragmentState extends State<NotificationFragment> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifikasi'),
+        title: Text(
+          "Notifikasi",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
       ),
@@ -109,11 +115,17 @@ class NotificationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(notification.icon, size: 40),
-      title: Text(notification.title),
+      leading: notification.type == 'investasi'
+          ? Image.asset('images/Buletan_investasi.png', width: 40, height: 40)
+          : Image.asset('images/Buletan_proyek.png', width: 40, height: 40),
+      title: Text(
+        notification.title,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       subtitle: Text(notification.message),
       trailing: Text(DateFormat('HH:mm').format(notification.date)),
     );
   }
 }
-

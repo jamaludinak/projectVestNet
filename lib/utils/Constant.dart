@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nb_utils/nb_utils.dart';
 import '../model/Proyek/ProyekModel.dart';
+import '../services/auth_service.dart';
 import 'Colors.dart';
 
 const String baseUrl = "http://localhost:8000/";
@@ -334,8 +335,17 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
   }
 
   Future<Map<String, dynamic>> fetchProjectDetails(int projectId) async {
-    final response = await http
-        .get(Uri.parse('${baseUrl}api/getProjectInvestDetail/$projectId'));
+    // Ambil token dari SharedPreferences atau sumber lain
+    final AuthService _authService = AuthService();
+    String? token = await _authService.getToken(); // Mendapatkan token
+
+    final response = await http.get(
+      Uri.parse('${baseUrl}api/getProjectInvestDetail/$projectId'),
+      headers: {
+        'Authorization': 'Bearer $token', // Sertakan token dalam header
+        'Accept': 'application/json', // Header tambahan untuk tipe data
+      },
+    );
 
     if (response.statusCode == 200) {
       return json.decode(response.body);
@@ -384,7 +394,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: Image.asset(
-                      'assets/images/proyek_default.png', // Gambar lokal
+                      'images/card2.png', // Gambar lokal
                       fit: BoxFit.cover,
                       width: 120,
                       height: 120,
@@ -397,64 +407,86 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Judul Proyek
                       Text(
                         project['projectName'],
                         style: TextStyle(
-                          color: Colors.black87,
+                          color: TextSecondaryColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
                       SizedBox(height: 8),
-                      Text(
-                        'Total Investasi',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        currencyFormatter.format(double.parse(project['totalInvestasi'])),
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Presentasi Saham',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        '${project['presentasiSaham'].toStringAsFixed(2)}%', // Format 2 desimal
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                      
+                      // Total Investasi dan Nilainya dalam satu row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total Investasi',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            currencyFormatter.format(double.parse(project['totalInvestasi'])),
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 8),
-                      Text(
-                        'Total Bagi Hasil',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+
+                      // Presentasi Saham dan Nilainya dalam satu row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Presentasi Saham',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            '${project['presentasiSaham'].toStringAsFixed(2)}%', // Format 2 desimal
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        currencyFormatter.format(double.parse(project['totalBagiHasil'])),
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                      SizedBox(height: 8),
+
+                      // Total Bagi Hasil dan Nilainya dalam satu row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total Bagi Hasil',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            currencyFormatter.format(project['totalBagiHasil']),
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -467,3 +499,4 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
     );
   }
 }
+

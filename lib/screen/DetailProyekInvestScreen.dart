@@ -5,62 +5,61 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../main.dart';
+import '../services/auth_service.dart';
+import '../utils/Colors.dart';
 import '../utils/Constant.dart';
 
 class DetailProyekInvest extends StatefulWidget {
-  final String projectId;
+  final int projectId;
 
   DetailProyekInvest({required this.projectId});
 
   @override
-  _DetailProyekInvestState createState() => _DetailProyekInvestState();
+  DetailProyekInvestState createState() => DetailProyekInvestState();
 }
 
-class _DetailProyekInvestState extends State<DetailProyekInvest> {
-  bool isLoading = true;
-  Map<String, dynamic>? projectData;
+class DetailProyekInvestState extends State<DetailProyekInvest> {
+  late Future<Map<String, dynamic>> projectDetails;
 
   @override
   void initState() {
     super.initState();
-    fetchProjectData();
+    projectDetails = fetchProjectDetails(widget.projectId);
   }
 
-  Future<void> fetchProjectData() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${baseUrl}/api/getProjectInvestDetail/${widget.projectId}'),
-        headers: {
-          'Authorization': 'Bearer your_token',
-          'Accept': 'application/json',
-        },
-      );
+  // Fungsi untuk mengambil detail proyek dari API
+  Future<Map<String, dynamic>> fetchProjectDetails(int projectId) async {
+    final AuthService _authService = AuthService();
+    String? token = await _authService.getToken();
+    
+    final response = await http.get(
+      Uri.parse('${baseUrl}api/getProjectInvestDetail/$projectId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
 
-      if (response.statusCode == 200) {
-        setState(() {
-          projectData = json.decode(response.body);
-          isLoading = false;
-        });
-      } else {
-        print('Failed to load project data: ${response.body}');
-      }
-    } catch (e) {
-      print('Error: $e');
-      setState(() {
-        isLoading = false;
-      });
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load project details');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double imageHeight = screenHeight / 4;
+    final currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: Text(
-          "Detail Proyek Investasi",
+          'Detail Proyek Investasi',
           style: boldTextStyle(size: 18),
         ),
         leading: IconButton(
@@ -73,119 +72,160 @@ class _DetailProyekInvestState extends State<DetailProyekInvest> {
         centerTitle: true,
         elevation: 0.0,
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.all(16),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: projectDetails,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return Center(child: Text('No project data available'));
+          } else {
+            var project = snapshot.data!;
+            
+            // Data dari API
+            String projectName = project['projectName'];
+            String location = project['location'];
+            double totalInvestasi = double.parse(project['totalInvestasi']);
+            String tanggalInvestasi = project['tanggalInvestasi'];
+            int jumlahPendukung = project['jumlahPendukung'];
+            String status = project['status'];
+            double presentasiSaham = project['presentasiSaham'];
+            double totalBagiHasil = project['totalBagiHasil'];
+            double pendapatanBulanan = project['pendapatanBulanan'];
+
+            return SingleChildScrollView(
+              child: Container(
+                margin: EdgeInsets.all(16),
+                padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Gambar proyek
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.network(
-                        projectData!['imageUrl'] ?? '',
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
+                    // Project Name
+                    Text(
+                      projectName,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: TextSecondaryColor,
+                      ),
+                      softWrap: true,
+                      maxLines: null, // Allow text to wrap
+                    ),
+                    SizedBox(height: 8), // Spacing after title
+
+                    // Project Image
+                    Container(
+                      width: screenWidth,
+                      height: imageHeight,
+                      child: Image.asset("images/Card2.png", fit: BoxFit.cover),
+                    ),
+                    SizedBox(height: 8), // Spacing after image
+
+                    // Desa dan Lokasi
+                    Text(
+                      location,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    Divider(
+                      color: Colors.black,
+                      thickness: 1,
+                    ),
+                    SizedBox(height: 8),
+
+                    // Total Investasi dan Tanggal Investasi
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Total Investasi',
+                                style: TextStyle(fontSize: 14, color: grey, fontWeight: FontWeight.w900)),
+                            Text(currencyFormatter.format(totalInvestasi),
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Tanggal Investasi',
+                                style: TextStyle(fontSize: 14, color: grey, fontWeight: FontWeight.w900)),
+                            Text(tanggalInvestasi,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16), // Spacing after rows
+
+                    // Jumlah Pendukung
+                    Center(
+                      child: Text(
+                        '$jumlahPendukung orang sudah mendukung proyek ini',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                     ),
-                    16.height,
-                    // Nama proyek
-                    Text(
-                      projectData!['projectName'] ?? '',
-                      style: boldTextStyle(size: 22),
+                    Divider(
+                      color: Colors.black,
+                      thickness: 1,
                     ),
-                    8.height,
-                    // Lokasi proyek
-                    Text(
-                      projectData!['location'] ?? '',
-                      style: secondaryTextStyle(),
-                    ),
-                    Divider(color: Colors.black, thickness: 1),
-                    16.height,
+                    SizedBox(height: 16),
 
+                    // Status
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total Investasi', style: boldTextStyle(size: 16)),
-                        Text(currencyFormatter.format(projectData!['totalInvestasi'] ?? 0),
-                            style: primaryTextStyle(size: 16)),
+                        Text('Status',
+                            style: TextStyle(fontSize: 16, color: grey, fontWeight: FontWeight.w900)),
+                        Text(status,
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w900, color: GreenNormalColor)),
                       ],
                     ),
-                    8.height,
-                    // Tanggal Investasi
+                    SizedBox(height: 8), // Spacing
+
+                    // Presentasi Saham dan Total Bagi Hasil
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Tanggal Investasi', style: boldTextStyle(size: 16)),
-                        Text(
-                          projectData!['tanggalInvestasi'] ?? '',
-                          style: primaryTextStyle(size: 16),
-                        ),
+                        Text('Presentasi Saham',
+                            style: TextStyle(fontSize: 16, color: grey, fontWeight: FontWeight.w900)),
+                        Text('${presentasiSaham.toStringAsFixed(2)}%',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                       ],
                     ),
-                    8.height,
-                    // Persentase Saham
+                    SizedBox(height: 8), // Spacing
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Persentase Saham', style: boldTextStyle(size: 16)),
-                        Text(
-                          '${(projectData!['presentasiSaham'] ?? 0).toStringAsFixed(2)}%',
-                          style: primaryTextStyle(size: 16),
-                        ),
+                        Text('Total Bagi Hasil',
+                            style: TextStyle(fontSize: 16, color: grey, fontWeight: FontWeight.w900)),
+                        Text(currencyFormatter.format(totalBagiHasil),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                       ],
                     ),
-                    8.height,
-                    // Status Proyek
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Status Proyek', style: boldTextStyle(size: 16)),
-                        Text(
-                          projectData!['status'] ?? '',
-                          style: primaryTextStyle(size: 16, color: Colors.green),
-                        ),
-                      ],
-                    ),
-                    16.height,
-                    Divider(color: Colors.black, thickness: 1),
-                    16.height,
+                    SizedBox(height: 8), // Spacing
+
                     // Pendapatan Bulanan
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Pendapatan Bulanan', style: boldTextStyle(size: 16)),
-                        Text(
-                          currencyFormatter.format(projectData!['pendapatanBulanan'] ?? 100000),
-                          style: primaryTextStyle(size: 16, color: Colors.green),
-                        ),
+                        Text('Pendapatan Bulanan',
+                            style: TextStyle(fontSize: 16, color: grey, fontWeight: FontWeight.w900)),
+                        Text(currencyFormatter.format(pendapatanBulanan),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                       ],
                     ),
-                    8.height,
-                    // Total Bagi Hasil
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Total Bagi Hasil', style: boldTextStyle(size: 16)),
-                        Text(
-                          currencyFormatter.format(projectData!['totalBagiHasil'] ?? 5000000),
-                          style: primaryTextStyle(size: 16, color: Colors.blue),
-                        ),
-                      ],
-                    ),
-                    16.height,
-                    // Data Distribusi Dana (Contoh Pie Chart Data Placeholder)
-                    Text('Distribusi Dana', style: boldTextStyle(size: 18)),
-                    8.height,
-                    // Pie chart atau representasi distribusi dana lainnya
-                    Text('Data distribusi dana akan ditampilkan di sini.', style: secondaryTextStyle()),
                   ],
                 ),
               ),
-            ),
+            );
+          }
+        },
+      ),
     );
   }
 }
