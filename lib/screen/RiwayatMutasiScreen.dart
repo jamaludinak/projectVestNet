@@ -26,7 +26,7 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
       String? token = await _authService.getToken();
 
       final response = await http.get(
-        Uri.parse('$baseUrl/api/riwayatMutasi'), // Replace with your API
+        Uri.parse('$baseUrl/api/riwayatMutasi'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
                 var kredit = mutasi['kredit'];
                 var debit = mutasi['debit'];
                 var keterangan = mutasi['keterangan'];
-                var namaDesa = mutasi['nama_desa'];
+                var desa = mutasi['desa'];
                 var createdAt = DateFormat('dd MMM yyyy')
                     .format(DateTime.parse(mutasi['created_at']));
 
@@ -100,7 +100,7 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
                         ),
                       ),
                       title: Text(
-                        'Proyek $namaDesa',
+                        'Proyek $desa',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
