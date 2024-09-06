@@ -68,15 +68,19 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
               itemCount: mutasiList.length,
               itemBuilder: (context, index) {
                 var mutasi = mutasiList[index];
-                var kredit = mutasi['kredit'];
-                var debit = mutasi['debit'];
+
+                // Pastikan nilai kredit dan debit di-cast ke double
+                var kredit =
+                    double.tryParse(mutasi['kredit'].toString()) ?? 0.0;
+                var debit = double.tryParse(mutasi['debit'].toString()) ?? 0.0;
                 var keterangan = mutasi['keterangan'];
-                var desa = mutasi['desa'];
+                var namaDesa = mutasi['desa'];
                 var createdAt = DateFormat('dd MMM yyyy')
                     .format(DateTime.parse(mutasi['created_at']));
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 16.0),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -92,15 +96,15 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
                     child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: Colors.blue,
-                        radius: 25, // Ukuran lingkaran lebih besar
+                        radius: 25,
                         child: Icon(
-                          Icons.account_balance_wallet, // Ikon bawaan Flutter
+                          Icons.account_balance_wallet,
                           color: Colors.white,
                           size: 28,
                         ),
                       ),
                       title: Text(
-                        'Proyek $desa',
+                        'Proyek $namaDesa',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -137,8 +141,7 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
                     ),
                   ),
                 );
-              },
-            ),
+              }),
     );
   }
 }
