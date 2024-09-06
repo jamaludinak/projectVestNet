@@ -26,7 +26,7 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
       String? token = await _authService.getToken();
 
       final response = await http.get(
-        Uri.parse('$baseUrl/api/riwayatMutasi'),
+        Uri.parse('${baseUrl}api/riwayatMutasi'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
