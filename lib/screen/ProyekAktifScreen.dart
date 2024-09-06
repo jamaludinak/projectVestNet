@@ -5,7 +5,6 @@ import 'dart:convert';
 import '../main.dart';
 import '../utils/Constant.dart';
 import 'DetailProyekScreen.dart';
-import '../model/Proyek/ProyekModel.dart';
 
 class ProyekAktifScreen extends StatefulWidget {
   @override
@@ -13,7 +12,7 @@ class ProyekAktifScreen extends StatefulWidget {
 }
 
 class ProyekAktifState extends State<ProyekAktifScreen> {
-  late Future<List<ProyekModel>> activeProjects;
+  late Future<List<int>> activeProjects;
 
   @override
   void initState() {
@@ -26,12 +25,12 @@ class ProyekAktifState extends State<ProyekAktifScreen> {
     setStatusBarColor(Colors.transparent);
   }
 
-  Future<List<ProyekModel>> fetchActiveProjects() async {
+  Future<List<int>> fetchActiveProjects() async {
     final response = await http.get(Uri.parse('${baseUrl}api/proyek-aktif'));
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => ProyekModel.fromJson(json)).toList();
+      return data.map<int>((json) => json['id_proyek'] as int).toList();
     } else {
       throw Exception('Failed to load active projects');
     }
@@ -59,7 +58,8 @@ class ProyekAktifState extends State<ProyekAktifScreen> {
         centerTitle: true,
         elevation: 0.0,
       ),
-      body: FutureBuilder<List<ProyekModel>>(
+
+      body: FutureBuilder<List<int>>(
         future: activeProjects,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -70,24 +70,22 @@ class ProyekAktifState extends State<ProyekAktifScreen> {
             return Center(child: Text('Tidak ada proyek aktif yang tersedia'));
           } else {
             return ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                var proyek = snapshot.data![index];
+                int projectId = snapshot.data![index];
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => DetailProyek(
-                          projectId: proyek.idProyek,
+                          projectId: projectId,
                         ),
                       ),
                     );
                   },
                   child: ProjectCard(
-                    projectId: proyek.idProyek,
+                    projectId: projectId,
                   ),
                 );
               },

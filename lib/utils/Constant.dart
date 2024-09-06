@@ -8,20 +8,69 @@ import 'Colors.dart';
 
 const String baseUrl = "http://localhost:8000/";
 
-const String termsAndConditions = 
-  'Syarat dan Ketentuan\n\n'
-  '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n\n'
-  '2. Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.\n\n'
-  '3. Informasi pribadi pengguna dilindungi sesuai Kebijakan Privasi. VestNet berkomitmen untuk menjaga kerahasiaan dan keamanan data pribadi pengguna sesuai dengan kebijakan privasi yang berlaku.';
+const String termsAndConditions = 'Syarat dan Ketentuan\n\n'
+    '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n\n'
+    '2. Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.\n\n'
+    '3. Informasi pribadi pengguna dilindungi sesuai Kebijakan Privasi. VestNet berkomitmen untuk menjaga kerahasiaan dan keamanan data pribadi pengguna sesuai dengan kebijakan privasi yang berlaku.';
 
 const List<String> provinsiList = ['Jawa Tengah'];
 const Map<String, List<String>> kabupatenList = {
   'Jawa Tengah': ['Banyumas', 'Purbalingga', 'Cilacap']
 };
 const Map<String, List<String>> kecamatanList = {
-  'Banyumas': ['Ajibarang', 'Baturaden', 'Cilongok', 'Kalibagor', 'Kebasen', 'Kemranjen', 'Kramat', 'Purwokerto Barat', 'Purwokerto Selatan', 'Purwokerto Timur', 'Purwokerto Utara', 'Sokaraja', 'Somagede', 'Tambak'],
-  'Purbalingga': ['Bojongsari', 'Bukateja', 'Kaligondang', 'Kalimanah', 'Karanganyar', 'Karangjambu', 'Karangmoncol', 'Kejobong', 'Kemangkon', 'Kertanegara', 'Kutasari', 'Mrebet', 'Padamara', 'Pengadegan', 'Rembang'],
-  'Cilacap': ['Adipala', 'Bantarsari', 'Binangun', 'Cilacap Selatan', 'Cilacap Tengah', 'Cilacap Utara', 'Gandrungmangu', 'Jeruklegi', 'Kampung Laut', 'Karangpucung', 'Kawunganten', 'Kedungreja', 'Kroya', 'Majenang', 'Nusawungu', 'Patimuan', 'Sampang', 'Sidareja']
+  'Banyumas': [
+    'Ajibarang',
+    'Baturaden',
+    'Cilongok',
+    'Kalibagor',
+    'Kebasen',
+    'Kemranjen',
+    'Kramat',
+    'Purwokerto Barat',
+    'Purwokerto Selatan',
+    'Purwokerto Timur',
+    'Purwokerto Utara',
+    'Sokaraja',
+    'Somagede',
+    'Tambak'
+  ],
+  'Purbalingga': [
+    'Bojongsari',
+    'Bukateja',
+    'Kaligondang',
+    'Kalimanah',
+    'Karanganyar',
+    'Karangjambu',
+    'Karangmoncol',
+    'Kejobong',
+    'Kemangkon',
+    'Kertanegara',
+    'Kutasari',
+    'Mrebet',
+    'Padamara',
+    'Pengadegan',
+    'Rembang'
+  ],
+  'Cilacap': [
+    'Adipala',
+    'Bantarsari',
+    'Binangun',
+    'Cilacap Selatan',
+    'Cilacap Tengah',
+    'Cilacap Utara',
+    'Gandrungmangu',
+    'Jeruklegi',
+    'Kampung Laut',
+    'Karangpucung',
+    'Kawunganten',
+    'Kedungreja',
+    'Kroya',
+    'Majenang',
+    'Nusawungu',
+    'Patimuan',
+    'Sampang',
+    'Sidareja'
+  ]
 };
 
 class CustomInputDecoration {
@@ -77,10 +126,11 @@ class _ProjectCardState extends State<ProjectCard> {
   }
 
   Future<ProyekModel> fetchProyek(int projectId) async {
-    final response = await http.get(Uri.parse('${baseUrl}api/proyek/$projectId'));
+    final response =
+        await http.get(Uri.parse('${baseUrl}api/proyek/$projectId'));
 
     if (response.statusCode == 200) {
-      return ProyekModel.fromJson(json.decode(response.body));
+      return ProyekModel.fromJson(json.decode(response.body)['proyek']);
     } else {
       throw Exception('Failed to load project data');
     }
@@ -100,7 +150,11 @@ class _ProjectCardState extends State<ProjectCard> {
         } else {
           var proyek = snapshot.data!;
           double progress = proyek.danaTerkumpul / proyek.targetInvest;
-          final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+          final currencyFormatter = NumberFormat.currency(
+              locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+
+          // Gabungkan baseUrl dengan path gambar relatif
+          final imageUrl = '${baseUrl}${proyek.fotoBanner}';
 
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -126,9 +180,13 @@ class _ProjectCardState extends State<ProjectCard> {
                     aspectRatio: 1,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.network(
-                        proyek.fotoBanner,
+                      child: Image.asset(
+                        "images/cp_card1.png",
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.broken_image,
+                              size: 50, color: Colors.grey);
+                        },
                       ),
                     ),
                   ),
@@ -139,6 +197,7 @@ class _ProjectCardState extends State<ProjectCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Judul proyek dengan warna TextSecondaryColor
                       Text(
                         proyek.namaProyek,
                         style: TextStyle(
@@ -148,6 +207,7 @@ class _ProjectCardState extends State<ProjectCard> {
                         ),
                       ),
                       SizedBox(height: 4),
+                      // Alamat dengan warna TextPrimaryColor bold
                       Text(
                         '${proyek.desa}, ${proyek.kecamatan}, ${proyek.kabupaten}',
                         style: TextStyle(
@@ -161,16 +221,18 @@ class _ProjectCardState extends State<ProjectCard> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
+                            // Dana Terkumpul dengan warna TextThirdColor bold
                             child: Text(
                               "Dana Terkumpul",
                               style: TextStyle(
                                 color: TextThirdColor,
-                                fontWeight: FontWeight.normal,
+                                fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
                             ),
                           ),
                           SizedBox(width: 4),
+                          // Nilai Dana Terkumpul dengan warna TextPrimaryColor bold
                           Text(
                             currencyFormatter.format(proyek.danaTerkumpul),
                             style: TextStyle(
@@ -185,15 +247,17 @@ class _ProjectCardState extends State<ProjectCard> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          // Progress dengan warna TextThirdColor bold
                           Text(
                             "Progress",
                             style: TextStyle(
                               color: TextThirdColor,
-                              fontWeight: FontWeight.normal,
+                              fontWeight: FontWeight.bold,
                               fontSize: 13,
                             ),
                           ),
                           SizedBox(width: 4),
+                          // Nilai Progress dengan warna TextPrimaryColor bold
                           Text(
                             '${(progress * 100).toInt()}%',
                             style: TextStyle(
@@ -203,46 +267,6 @@ class _ProjectCardState extends State<ProjectCard> {
                             ),
                           ),
                         ],
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Status: ${proyek.status}',
-                        style: TextStyle(
-                          color: TextSecondaryColor,
-                          fontSize: 13,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Estimasi ROI: ${proyek.roi.toStringAsFixed(2)}% per tahun',
-                        style: TextStyle(
-                          color: TextSecondaryColor,
-                          fontSize: 13,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Grade: ${proyek.grade}',
-                        style: TextStyle(
-                          color: TextSecondaryColor,
-                          fontSize: 13,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'BEP: ${proyek.bep.toStringAsFixed(2)} tahun',
-                        style: TextStyle(
-                          color: TextSecondaryColor,
-                          fontSize: 13,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Min. Investasi: ${currencyFormatter.format(proyek.minInvest)}',
-                        style: TextStyle(
-                          color: TextSecondaryColor,
-                          fontSize: 13,
-                        ),
                       ),
                     ],
                   ),
@@ -258,11 +282,36 @@ class _ProjectCardState extends State<ProjectCard> {
 
 List<LanguageDataModel> languageList() {
   return [
-    LanguageDataModel(id: 1, name: 'English', languageCode: 'en', fullLanguageCode: 'en-US', flag: 'images/flag/ic_us.png'),
-    LanguageDataModel(id: 2, name: 'Hindi', languageCode: 'hi', fullLanguageCode: 'hi-IN', flag: 'images/flag/ic_hi.png'),
-    LanguageDataModel(id: 3, name: 'Arabic', languageCode: 'ar', fullLanguageCode: 'ar-AR', flag: 'images/flag/ic_ar.png'),
-    LanguageDataModel(id: 4, name: 'French', languageCode: 'fr', fullLanguageCode: 'fr-FR', flag: 'images/flag/ic_fr.png'),
-    LanguageDataModel(id: 5, name: 'Indonesian', languageCode: 'id', fullLanguageCode: 'id-ID', flag: 'images/flag/ic_id.png'),
+    LanguageDataModel(
+        id: 1,
+        name: 'English',
+        languageCode: 'en',
+        fullLanguageCode: 'en-US',
+        flag: 'images/flag/ic_us.png'),
+    LanguageDataModel(
+        id: 2,
+        name: 'Hindi',
+        languageCode: 'hi',
+        fullLanguageCode: 'hi-IN',
+        flag: 'images/flag/ic_hi.png'),
+    LanguageDataModel(
+        id: 3,
+        name: 'Arabic',
+        languageCode: 'ar',
+        fullLanguageCode: 'ar-AR',
+        flag: 'images/flag/ic_ar.png'),
+    LanguageDataModel(
+        id: 4,
+        name: 'French',
+        languageCode: 'fr',
+        fullLanguageCode: 'fr-FR',
+        flag: 'images/flag/ic_fr.png'),
+    LanguageDataModel(
+        id: 5,
+        name: 'Indonesian',
+        languageCode: 'id',
+        fullLanguageCode: 'id-ID',
+        flag: 'images/flag/ic_id.png'),
   ];
 }
 
@@ -285,7 +334,8 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
   }
 
   Future<Map<String, dynamic>> fetchProjectDetails(int projectId) async {
-    final response = await http.get(Uri.parse('${baseUrl}getProjectInvestDetail/$projectId'));
+    final response = await http
+        .get(Uri.parse('${baseUrl}getProjectInvestDetail/$projectId'));
 
     if (response.statusCode == 200) {
       return json.decode(response.body);
@@ -296,7 +346,8 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    final currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
     return FutureBuilder<Map<String, dynamic>>(
       future: projectDetails,

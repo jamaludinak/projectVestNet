@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../../screen/FormTarikDanaScreen.dart';
+import '../../screen/RiwayatMutasiScreen.dart';
+import '../../services/auth_service.dart';
 import '../../utils/Colors.dart';
 import '../../utils/Constant.dart';
 
@@ -14,7 +16,7 @@ class CardInvestasiHome extends StatefulWidget {
 }
 
 class CardInvestasiHomeState extends State<CardInvestasiHome> {
-  double totalInvestasi = 0;
+  double saldo = 0;
   double penghasilan = 0;
 
   @override
@@ -23,22 +25,37 @@ class CardInvestasiHomeState extends State<CardInvestasiHome> {
     fetchInvestasiData();
   }
 
+  // Fungsi untuk mengambil data investasi
   Future<void> fetchInvestasiData() async {
     try {
-      final response = await http.get(Uri.parse('${baseUrl}api/getInvestasiData'));
+      final AuthService _authService = AuthService();
+      String? token =
+          await _authService.getToken(); // Mendapatkan token pengguna
+      print(token);
 
+      // Melakukan request ke API
+      final response = await http.get(
+        Uri.parse('${baseUrl}api/getInvestasiData'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      // Jika request berhasil (status 200)
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+
         setState(() {
-          totalInvestasi = data['totalInvestasi'].toDouble();
-          penghasilan = data['penghasilan'].toDouble();
+          // Casting nilai dari API ke double dan mengupdate state
+          saldo = (data['saldo'] as num).toDouble();
+          penghasilan = (data['penghasilan'] as num).toDouble();
         });
       } else {
         throw Exception('Failed to load data');
       }
     } catch (e) {
       print('Error: $e');
-
     }
   }
 
@@ -83,7 +100,15 @@ class CardInvestasiHomeState extends State<CardInvestasiHome> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RiwayatMutasiScreen(),
+                      ),
+                    );
+                  },
                   child: Row(
                     children: [
                       Icon(
@@ -91,7 +116,9 @@ class CardInvestasiHomeState extends State<CardInvestasiHome> {
                         color: TextPrimaryColor,
                         size: 20,
                       ),
-                      4.width,
+                      SizedBox(
+                          width:
+                              4),
                       Text(
                         "Riwayat",
                         style: TextStyle(
@@ -106,7 +133,7 @@ class CardInvestasiHomeState extends State<CardInvestasiHome> {
               ],
             ),
             Text(
-              currencyFormatter.format(totalInvestasi),
+              currencyFormatter.format(saldo),
               textAlign: TextAlign.start,
               overflow: TextOverflow.clip,
               style: TextStyle(

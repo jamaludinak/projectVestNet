@@ -76,8 +76,7 @@ class HomeFragmentState extends State<HomeFragment> {
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   if (homeData['is_investor'] == 0) CardBelumInvestasi(),
-                  if (homeData['is_investor'] == 1)
-                    CardInvestasiHome(),
+                  if (homeData['is_investor'] == 1) CardInvestasiHome(),
                   if (homeData['is_subscriber'] == true)
                     CardPelanggan(
                       tagihanInternet: 165000,
@@ -128,7 +127,9 @@ class HomeFragmentState extends State<HomeFragment> {
                         ? ListView.builder(
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
-                            itemCount: homeData['active_projects'].length,
+                            itemCount: homeData['active_projects'].length > 3
+                                ? 3
+                                : homeData['active_projects'].length,
                             itemBuilder: (context, index) {
                               var proyekId = homeData['active_projects'][index];
                               return GestureDetector(
@@ -149,12 +150,12 @@ class HomeFragmentState extends State<HomeFragment> {
                             },
                           )
                         : Center(
-                            child: Text("\nTidak ada proyek aktif yang tersedia")),
+                            child:
+                                Text("\nTidak ada proyek aktif yang tersedia")),
                   )
                 ],
               ),
             ),
     );
   }
-
 }
