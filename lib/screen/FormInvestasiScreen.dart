@@ -190,6 +190,43 @@ class FormInvestasiState extends State<FormInvestasi> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Metode Pembayaran
+                Text('Metode Pembayaran',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue)),
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Transfer Bank Mandiri',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Nomer Rekening\t: 000000000\nAtas Nama\t: Toni Anwar',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Tunai',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Silakan hubungi kami untuk detail lebih lanjut.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
                 // Jumlah Investasi
                 Text('Jumlah Investasi',
                     style:
@@ -228,48 +265,7 @@ class FormInvestasiState extends State<FormInvestasi> {
                     );
                   },
                 ),
-
                 SizedBox(height: 16),
-
-                // Metode Pembayaran
-                Text('Metode Pembayaran',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue)),
-                Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Transfer Bank Mandiri',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Nomer Rekening\t: 000000000\nAtas Nama\t: Toni Anwar',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Tunai',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Silakan hubungi kami untuk detail lebih lanjut.',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 16),
-
                 // Tombol Unggah Bukti Transfer
                 MaterialButton(
                   onPressed: _pickFile,
@@ -295,7 +291,6 @@ class FormInvestasiState extends State<FormInvestasi> {
                   textColor: Color(0xffffffff),
                   height: 40,
                 ),
-
                 SizedBox(height: 14),
                 Text('Syarat dan Ketentuan',
                     style: TextStyle(fontWeight: FontWeight.bold)),

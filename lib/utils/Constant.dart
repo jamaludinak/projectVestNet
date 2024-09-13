@@ -7,7 +7,7 @@ import '../model/Proyek/ProyekModel.dart';
 import '../services/auth_service.dart';
 import 'Colors.dart';
 
-const String baseUrl = "http://localhost:8000/";
+const String baseUrl = "https://vestnet.id/";
 
 const String termsAndConditions = 'Syarat dan Ketentuan\n\n'
     '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n\n'

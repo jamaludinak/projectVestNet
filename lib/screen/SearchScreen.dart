@@ -31,12 +31,14 @@ class SearchScreenState extends State<SearchScreen> {
       isLoading = true; // Mulai loading saat mengambil data
     });
     try {
-      final response = await http.get(Uri.parse('${baseUrl}api/detailProyekAll'));
+      final response =
+          await http.get(Uri.parse('${baseUrl}api/detailProyekAll'));
 
       if (response.statusCode == 200) {
         List jsonResponse = json.decode(response.body);
         setState(() {
-          allProjects = jsonResponse.map((data) => ProyekModel.fromJson(data)).toList();
+          allProjects =
+              jsonResponse.map((data) => ProyekModel.fromJson(data)).toList();
           filteredProjects = allProjects; // Menampilkan semua proyek pada awal
           isLoading = false; // Selesai loading
         });
@@ -57,7 +59,8 @@ class SearchScreenState extends State<SearchScreen> {
   void searchProjects(String query) {
     setState(() {
       if (query.isEmpty) {
-        filteredProjects = allProjects; // Jika pencarian kosong, tampilkan semua proyek
+        filteredProjects =
+            allProjects; // Jika pencarian kosong, tampilkan semua proyek
       } else {
         filteredProjects = allProjects.where((project) {
           final desaName = project.desa?.toLowerCase() ?? '';
@@ -71,16 +74,18 @@ class SearchScreenState extends State<SearchScreen> {
 
   void filterByKabupaten(String kabupaten) async {
     setState(() {
-      isLoading = true;  // Mulai loading saat filter diterapkan
+      isLoading = true; // Mulai loading saat filter diterapkan
     });
 
-    await Future.delayed(Duration(milliseconds: 500));  // Simulasi proses loading
+    await Future.delayed(
+        Duration(milliseconds: 500)); // Simulasi proses loading
 
     setState(() {
       selectedKabupaten = kabupaten;
 
       if (kabupaten.isEmpty && searchController.text.isEmpty) {
-        filteredProjects = allProjects; // Reset jika tidak ada kabupaten dan pencarian
+        filteredProjects =
+            allProjects; // Reset jika tidak ada kabupaten dan pencarian
       } else {
         filteredProjects = allProjects.where((project) {
           final desaName = project.desa?.toLowerCase() ?? '';
@@ -88,7 +93,7 @@ class SearchScreenState extends State<SearchScreen> {
           return (kabupaten.isEmpty || project.kabupaten == kabupaten);
         }).toList();
       }
-      isLoading = false;  // Selesai loading
+      isLoading = false; // Selesai loading
     });
   }
 
@@ -112,7 +117,9 @@ class SearchScreenState extends State<SearchScreen> {
         ),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Menampilkan loading jika isLoading true
+          ? Center(
+              child:
+                  CircularProgressIndicator()) // Menampilkan loading jika isLoading true
           : SingleChildScrollView(
               padding: EdgeInsets.only(top: 0),
               child: Column(
@@ -132,22 +139,31 @@ class SearchScreenState extends State<SearchScreen> {
                           });
                         }
                       },
-                      onSubmitted: (value) {
-                        searchProjects(value);  // Panggil pencarian saat pengguna menekan enter
+                      onSubmitted: (value) async {
+                        if (value.isNotEmpty) {
+                          // Panggil pencarian saat pengguna menekan enter
+                          searchProjects(value);
+                        } else {
+                          // Jika pencarian kosong, fetch ulang daftar proyek
+                          await fetchProjects();
+                        }
                       },
+
                       textAlign: TextAlign.left,
                       maxLines: 1,
-                      enabled: selectedKabupaten.isEmpty, // Nonaktifkan TextField jika filter kabupaten aktif
+                      enabled: selectedKabupaten
+                          .isEmpty, // Nonaktifkan TextField jika filter kabupaten aktif
                       style: primaryTextStyle(size: 16),
                       decoration: CustomInputDecoration.getDecoration(
                               hintText: selectedKabupaten.isNotEmpty
-                                  ? "Cari Proyek Investasi"  // Berikan petunjuk jika tidak bisa di search
+                                  ? "Cari Proyek Investasi" // Berikan petunjuk jika tidak bisa di search
                                   : "Cari Proyek Investasi")
                           .copyWith(
                         prefixIcon: Icon(Icons.search_sharp),
                         filled: true,
                         fillColor: selectedKabupaten.isNotEmpty
-                            ? Colors.grey.shade300  // Ubah warna jika TextField tidak aktif
+                            ? Colors.grey
+                                .shade300 // Ubah warna jika TextField tidak aktif
                             : Color(0xFFF2F2F2),
                       ),
                     ),
@@ -158,7 +174,8 @@ class SearchScreenState extends State<SearchScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
-                      children: ['Banyumas', 'Purbalingga', 'Cilacap'].map((kabupaten) {
+                      children: ['Banyumas', 'Purbalingga', 'Cilacap']
+                          .map((kabupaten) {
                         bool isActive = selectedKabupaten == kabupaten;
                         return Padding(
                           padding: EdgeInsets.only(right: 8),
@@ -171,7 +188,9 @@ class SearchScreenState extends State<SearchScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.0),
                               side: BorderSide(
-                                color: isActive ? Colors.transparent : Colors.black,
+                                color: isActive
+                                    ? Colors.transparent
+                                    : Colors.black,
                                 width: 1,
                               ),
                             ),
