@@ -203,4 +203,25 @@ class AuthService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
   }
+
+  Future<bool> forgotPassword(String email) async {
+    final response = await http.post(
+      Uri.parse('${baseUrl}api/forgot-password'),
+      body: {'email': email},
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> resetPassword(String email, String newPassword) async {
+    final response = await http.post(
+      Uri.parse('${baseUrl}api/reset-password'),
+      body: {
+        'email': email,
+        'new_password': newPassword,
+        'new_password_confirmation': newPassword,
+      },
+    );
+    return response.statusCode == 200;
+  }
+
 }

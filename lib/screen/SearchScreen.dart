@@ -43,13 +43,13 @@ class SearchScreenState extends State<SearchScreen> {
       } else {
         print('Failed to load projects');
         setState(() {
-          isLoading = false; // Gagal memuat data, berhenti loading
+          isLoading = false;
         });
       }
     } catch (e) {
       print('Error: $e');
       setState(() {
-        isLoading = false; // Error, berhenti loading
+        isLoading = false;
       });
     }
   }
