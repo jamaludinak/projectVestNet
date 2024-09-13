@@ -53,6 +53,7 @@ class AuthService {
   Future<bool> registerUser(String username, String email, String password) async {
     final String apiUrl = "${baseUrl}api/registerMobile";
 
+
     try {
       final response = await http.post(
         Uri.parse(apiUrl),

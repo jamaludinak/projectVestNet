@@ -4,6 +4,7 @@ import 'package:nb_utils/nb_utils.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../main.dart';
+import '../services/auth_service.dart';
 import '../utils/Colors.dart';
 import '../utils/Constant.dart';
 import 'FormInvestasiScreen.dart';
@@ -20,14 +21,17 @@ class DetailProyek extends StatefulWidget {
 
 class DetailProyekState extends State<DetailProyek> {
   late Future<ProyekModel> projectDetails;
+  late Future<bool> hasInvested; // Future untuk cek apakah sudah investasi
 
   @override
   void initState() {
     super.initState();
     projectDetails = fetchProjectDetails(widget.projectId);
+    hasInvested = checkIfUserHasInvested(
+        widget.projectId); // Inisiasi pengecekan investasi
   }
 
-  // Ubah fungsi ini untuk mengembalikan ProyekModel
+  // Fungsi untuk fetch detail proyek
   Future<ProyekModel> fetchProjectDetails(int projectId) async {
     final response =
         await http.get(Uri.parse('${baseUrl}api/proyek/$projectId'));
@@ -37,6 +41,28 @@ class DetailProyekState extends State<DetailProyek> {
       return ProyekModel.fromJson(data['proyek']);
     } else {
       throw Exception('Failed to load project details');
+    }
+  }
+
+  // Fungsi untuk mengecek apakah user sudah investasi
+  Future<bool> checkIfUserHasInvested(int projectId) async {
+    final AuthService _authService = AuthService();
+    String? token = await _authService.getToken();
+
+    final response = await http.post(
+      Uri.parse('${baseUrl}api/checkUserInvestment'),
+      body: jsonEncode({'id_proyek': projectId}),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['invested']; // Mengembalikan nilai boolean true/false
+    } else {
+      throw Exception('Failed to check investment status');
     }
   }
 
@@ -51,21 +77,18 @@ class DetailProyekState extends State<DetailProyek> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        // Ubah judul menjadi "Projek Desa (Nama Desa)"
         title: FutureBuilder<ProyekModel>(
           future: projectDetails,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text("Projek Desa",
-                  style: boldTextStyle(size: 18)); // Default saat loading
+              return Text("Projek Desa", style: boldTextStyle(size: 18));
             } else if (snapshot.hasData) {
               return Text(
-                'Projek Desa ${snapshot.data!.desa}', // Menampilkan nama desa di judul
+                'Projek Desa ${snapshot.data!.desa}',
                 style: boldTextStyle(size: 18),
               );
             } else {
-              return Text('Projek Desa',
-                  style: boldTextStyle(size: 18)); // Jika error
+              return Text('Projek Desa', style: boldTextStyle(size: 18));
             }
           },
         ),
@@ -99,7 +122,6 @@ class DetailProyekState extends State<DetailProyek> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Tambahkan judul sebelum gambar
                     Text(
                       'Pengembangan Infrastruktur Internet Desa ${proyek.desa}',
                       style: TextStyle(
@@ -107,26 +129,21 @@ class DetailProyekState extends State<DetailProyek> {
                         fontWeight: FontWeight.bold,
                         color: TextSecondaryColor,
                       ),
-                      softWrap: true, // Mengizinkan teks untuk membungkus
-                      maxLines:
-                          null, // Mengizinkan teks untuk memiliki baris tambahan
+                      softWrap: true,
+                      maxLines: null,
                     ),
-                    SizedBox(height: 8), // Tambahkan sedikit spasi
+                    SizedBox(height: 8),
                     Container(
                       width: screenWidth,
                       height: imageHeight,
-                      child: Image.asset("images/cp_card1.png",
-                          fit: BoxFit.cover), // Mengambil data dari model
+                      child:
+                          Image.asset("images/cp_card1.png", fit: BoxFit.cover),
                     ),
-                    SizedBox(
-                        height:
-                            8), // Menambahkan space setelah gambar sebelum alamat
-                    // Address Text dengan bold
+                    SizedBox(height: 8),
                     Text(
                       '${proyek.desa}, ${proyek.kecamatan}, ${proyek.kabupaten}',
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold), // Bold address
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     Divider(
                       color: Colors.black,
@@ -241,60 +258,52 @@ class DetailProyekState extends State<DetailProyek> {
                         ),
                       ],
                     ),
-
-                    // SizedBox(height: 16),
-
-                    // Text(
-                    //   'Dokumentasi',
-                    //   style:
-                    //       TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    // ),
-                    // SizedBox(height: 16),
-
-                    // // Tampilan Dokumentasi (Jika ada)
-                    // SingleChildScrollView(
-                    //   scrollDirection: Axis.horizontal,
-                    //   child: Row(
-                    //     children: proyek.dokumentasi.map((dokumentasi) {
-                    //       return Container(
-                    //         margin: EdgeInsets.only(right: 16),
-                    //         width: screenWidth / 2.5,
-                    //         height: imageHeight / 2,
-                    //         child: Image.network(dokumentasi['foto_dokumentasi']),
-                    //       );
-                    //     }).toList(),
-                    //   ),
-                    // ),
-                    // SizedBox(height: 16),
-
-                    Center(
-                      child: MaterialButton(
-                        onPressed: () {
-                          // Handle tap gesture here
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FormInvestasi(
-                                projectId: proyek.idProyek,
-                                desaName: proyek.desa,
+                    // Cek apakah user sudah investasi atau belum
+                    FutureBuilder<bool>(
+                      future: hasInvested,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(
+                              child: Text('Error checking investment status'));
+                        } else if (snapshot.hasData && !snapshot.data!) {
+                          // Jika belum investasi, tampilkan tombol
+                          return Center(
+                            child: MaterialButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FormInvestasi(
+                                      projectId: proyek.idProyek,
+                                      desaName: proyek.desa,
+                                    ),
+                                  ),
+                                );
+                              },
+                              color: PrimaryColor,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0)),
+                              child: Text(
+                                "Mulai Investasi Sekarang!",
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    fontStyle: FontStyle.normal),
                               ),
+                              textColor: Color(0xffffffff),
+                              height: 30,
                             ),
                           );
-                        },
-                        color: PrimaryColor,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0)),
-                        child: Text(
-                          "Mulai Investasi Sekarang!",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              fontStyle: FontStyle.normal),
-                        ),
-                        textColor: Color(0xffffffff),
-                        height: 30,
-                      ),
+                        } else {
+                          return Center(
+                              child: Text(
+                                  'Anda sudah berinvestasi di proyek ini.'));
+                        }
+                      },
                     ),
                   ],
                 ),

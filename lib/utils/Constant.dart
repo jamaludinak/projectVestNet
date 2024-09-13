@@ -7,7 +7,7 @@ import '../model/Proyek/ProyekModel.dart';
 import '../services/auth_service.dart';
 import 'Colors.dart';
 
-const String baseUrl = "http://vestnet.id/";
+const String baseUrl = "http://localhost:8000/";
 
 const String termsAndConditions = 'Syarat dan Ketentuan\n\n'
     '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n\n'
@@ -154,9 +154,6 @@ class _ProjectCardState extends State<ProjectCard> {
           final currencyFormatter = NumberFormat.currency(
               locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
-          // Gabungkan baseUrl dengan path gambar relatif
-          final imageUrl = '${baseUrl}${proyek.fotoBanner}';
-
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: EdgeInsets.all(8),
@@ -176,9 +173,9 @@ class _ProjectCardState extends State<ProjectCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Flexible(
-                  flex: 1,
+                  flex: 4,
                   child: AspectRatio(
-                    aspectRatio: 1,
+                    aspectRatio: 3/2,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
                       child: Image.asset(
@@ -194,7 +191,7 @@ class _ProjectCardState extends State<ProjectCard> {
                 ),
                 SizedBox(width: 16),
                 Flexible(
-                  flex: 2,
+                  flex: 6,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -204,7 +201,7 @@ class _ProjectCardState extends State<ProjectCard> {
                         style: TextStyle(
                           color: TextSecondaryColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 14,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -214,7 +211,7 @@ class _ProjectCardState extends State<ProjectCard> {
                         style: TextStyle(
                           color: TextPrimaryColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                          fontSize: 12,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -228,7 +225,7 @@ class _ProjectCardState extends State<ProjectCard> {
                               style: TextStyle(
                                 color: TextThirdColor,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                                fontSize: 12,
                               ),
                             ),
                           ),
@@ -239,7 +236,7 @@ class _ProjectCardState extends State<ProjectCard> {
                             style: TextStyle(
                               color: TextPrimaryColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -254,7 +251,7 @@ class _ProjectCardState extends State<ProjectCard> {
                             style: TextStyle(
                               color: TextThirdColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: 12,
                             ),
                           ),
                           SizedBox(width: 4),
@@ -264,7 +261,7 @@ class _ProjectCardState extends State<ProjectCard> {
                             style: TextStyle(
                               color: TextPrimaryColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -372,10 +369,10 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
           var project = snapshot.data!;
 
           return Container(
-            margin: EdgeInsets.all(16),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Color(0xFFF2F2F2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.3),
@@ -390,20 +387,25 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Flexible(
-                  flex: 1,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      'images/card2.png', // Gambar lokal
-                      fit: BoxFit.cover,
-                      width: 120,
-                      height: 120,
+                  flex: 4,
+                  child: AspectRatio(
+                    aspectRatio: 3/2,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.asset(
+                        "images/card2.png",
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.broken_image,
+                              size: 50, color: Colors.grey);
+                        },
+                      ),
                     ),
                   ),
                 ),
                 SizedBox(width: 16),
                 Flexible(
-                  flex: 2,
+                  flex: 6,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -413,11 +415,11 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                         style: TextStyle(
                           color: TextSecondaryColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 14,
                         ),
                       ),
                       SizedBox(height: 8),
-                      
+
                       // Total Investasi dan Nilainya dalam satu row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -427,15 +429,16 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                             style: TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                           Text(
-                            currencyFormatter.format(double.parse(project['totalInvestasi'])),
+                            currencyFormatter.format(
+                                double.parse(project['totalInvestasi'])),
                             style: TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -451,7 +454,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                             style: TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                           Text(
@@ -459,7 +462,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                             style: TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -471,19 +474,19 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Total Bagi Hasil',
+                            'Pendapatan Bulanan',
                             style: TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                           Text(
-                            currencyFormatter.format(project['totalBagiHasil']),
+                            currencyFormatter.format(project['pendapatanBulanan']),
                             style: TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -499,4 +502,3 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
     );
   }
 }
-

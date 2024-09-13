@@ -57,6 +57,11 @@ class _FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
       return;
     }
 
+    // Tampilkan pop-up konfirmasi sebelum mengirim data
+    _showConfirmationPopup();
+  }
+
+  Future<void> _submitData() async {
     setState(() {
       isLoading = true;
     });
@@ -87,27 +92,7 @@ class _FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
       );
 
       if (response.statusCode == 201) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: Text(
-                'Pengajuan internet berhasil dikirim dan akan diproses.',
-                textAlign: TextAlign.center,
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => DashBoardScreen()));
-                  },
-                  child: Text('Lanjutkan'),
-                ),
-              ],
-            );
-          },
-        );
+        _showSuccessPopup(); // Tampilkan pop-up sukses jika berhasil
       } else {
         print('Error: ${response.statusCode} - ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -126,13 +111,64 @@ class _FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
     }
   }
 
+  void _showConfirmationPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Konfirmasi Pengajuan'),
+          content: Text('Data yang Anda masukkan sudah benar?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog
+              },
+              child: Text('Cek Ulang'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog konfirmasi
+                _submitData(); // Lanjutkan pengiriman data
+              },
+              child: Text('Benar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSuccessPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(
+            'Pengajuan internet berhasil dikirim dan akan diproses.',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => DashBoardScreen()),
+                );
+              },
+              child: Text('Lanjutkan'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title:
             Text('Formulir Pengajuan Internet', style: boldTextStyle(size: 18)),
-        centerTitle: true,
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),

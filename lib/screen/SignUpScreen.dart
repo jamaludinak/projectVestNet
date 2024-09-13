@@ -22,6 +22,7 @@ class SignUpScreenState extends State<SignUpScreen> {
   TextEditingController passController = TextEditingController();
   TextEditingController confirmPassController = TextEditingController();
 
+  FocusNode nameFocus = FocusNode();
   FocusNode emailFocus = FocusNode();
   FocusNode passFocus = FocusNode();
   FocusNode confirmPassFocus = FocusNode();
@@ -43,14 +44,18 @@ class SignUpScreenState extends State<SignUpScreen> {
 
   void validateAndSubmit() {
     setState(() {
-      nameError = nameController.text.isEmpty ? 'Username tidak boleh kosong' : null;
-      emailError = !AuthService.isEmailValid(emailController.text) ? 'Email tidak valid' : null;
+      nameError =
+          nameController.text.isEmpty ? 'Username tidak boleh kosong' : null;
+      emailError = !AuthService.isEmailValid(emailController.text)
+          ? 'Email tidak valid'
+          : null;
 
       if (passController.text.isEmpty) {
         passError = 'Password tidak boleh kosong';
       } else if (passController.text.length < 6) {
         passError = 'Password terlalu pendek';
-      } else if (!RegExp(r'[A-Z]').hasMatch(passController.text) || !RegExp(r'[0-9]').hasMatch(passController.text)) {
+      } else if (!RegExp(r'[A-Z]').hasMatch(passController.text) ||
+          !RegExp(r'[0-9]').hasMatch(passController.text)) {
         passError = 'Password harus mengandung huruf besar dan angka';
       } else {
         passError = null;
@@ -61,16 +66,22 @@ class SignUpScreenState extends State<SignUpScreen> {
           : null;
     });
 
-    if (nameError == null && emailError == null && passError == null && confirmPassError == null) {
-      AuthService().registerUser(
+    if (nameError == null &&
+        emailError == null &&
+        passError == null &&
+        confirmPassError == null) {
+      AuthService()
+          .registerUser(
         nameController.text,
         emailController.text,
         passController.text,
-      ).then((success) {
+      )
+          .then((success) {
         if (success) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => VerifyEmail(email: emailController.text)),
+            MaterialPageRoute(
+                builder: (context) => VerifyEmail(email: emailController.text)),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -103,7 +114,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                   children: [
                     CustomTextField(
                       controller: nameController,
-                      focusNode: emailFocus,
+                      focusNode: nameFocus,
                       hintText: "Username",
                       errorText: nameError,
                       onSubmit: () {
@@ -174,7 +185,8 @@ class SignUpScreenState extends State<SignUpScreen> {
                           onTap: () {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (context) => LoginScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) => LoginScreen()),
                             );
                           },
                           child: Text(

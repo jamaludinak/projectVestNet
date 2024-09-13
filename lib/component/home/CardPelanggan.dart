@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:intl/intl.dart';
 
+import '../../screen/BillHistoryScreen.dart';
 import '../../utils/Colors.dart';
-
 
 class CardPelanggan extends StatefulWidget {
   final double tagihanInternet;
@@ -21,7 +21,8 @@ class CardPelanggan extends StatefulWidget {
 class CardPelangganState extends State<CardPelanggan> {
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    final currencyFormatter =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
     return Container(
       margin: EdgeInsets.all(16),
@@ -29,8 +30,7 @@ class CardPelangganState extends State<CardPelanggan> {
       width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: AssetImage(
-              "images/Frame.png"),
+          image: AssetImage("images/Frame.png"),
           fit: BoxFit.cover,
         ),
         shape: BoxShape.rectangle,
@@ -79,7 +79,11 @@ class CardPelangganState extends State<CardPelanggan> {
                 ),
                 GestureDetector(
                   onTap: () {
-                   
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => BillHistoryScreen()),
+                    );
                   },
                   child: Text(
                     "Riwayat",
@@ -96,7 +100,11 @@ class CardPelangganState extends State<CardPelanggan> {
               alignment: Alignment.centerRight,
               child: GestureDetector(
                 onTap: () {
-                  
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => BillHistoryScreen()),
+                  );
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

@@ -1,234 +1,365 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:nb_utils/nb_utils.dart';
-import '../main.dart';
+import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
-import '../utils/Colors.dart';
-import 'DashBoardScreen.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 import '../utils/Constant.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:http/http.dart' as http;
+
+import 'DashBoardScreen.dart';
 
 class FormulirTarikDana extends StatefulWidget {
   @override
-  FormulirTarikDanaState createState() => FormulirTarikDanaState();
+  _FormulirTarikDanaState createState() => _FormulirTarikDanaState();
 }
 
-class FormulirTarikDanaState extends State<FormulirTarikDana> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _jumlahDanaController = TextEditingController();
+class _FormulirTarikDanaState extends State<FormulirTarikDana> {
+  final MoneyMaskedTextController _amountController = MoneyMaskedTextController(
+    thousandSeparator: '.',
+    decimalSeparator: '',
+    leftSymbol: 'Rp ',
+    precision: 0,
+  );
+
   bool agreeToTerms = false;
-  File? _buktiTransfer;
+  List<dynamic> _saldoInvestasi = [];
+  String? _selectedInvestasiId;
 
   @override
   void initState() {
     super.initState();
-    init();
+    fetchSaldoInvestasi();
   }
 
-  Future<void> init() async {
-    // Any initial setup
+  Future<void> fetchSaldoInvestasi() async {
+    try {
+      final AuthService _authService = AuthService();
+      String? token = await _authService.getToken();
+
+      final response = await http.get(
+        Uri.parse('${baseUrl}api/saldoInvestasi'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        setState(() {
+          _saldoInvestasi = data;
+        });
+      } else {
+        throw Exception('Failed to load saldo investasi');
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
-  // Fungsi untuk mengirim data ke API
-  Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate() &&
-        agreeToTerms &&
-        _buktiTransfer != null) {
-      try {
-        final AuthService _authService = AuthService();
-        String? token = await _authService.getToken();
-        // URL API
-        String apiUrl =
-            '${baseUrl}/api/tarikSaldo'; // Ganti dengan URL API kamu
+  Future<void> tarikSaldo() async {
+    try {
+      final AuthService _authService = AuthService();
+      String? token = await _authService.getToken();
+      final response = await http.post(
+        Uri.parse('${baseUrl}api/tarikSaldo'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'id_investasi': _selectedInvestasiId,
+          'jumlah': _amountController.numberValue,
+        }),
+      );
 
-        // Buat request multipart untuk upload file dan form data
-        var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _showSuccessPopup();
+      } else {
+        throw Exception('Failed to tarik saldo');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
-        // Menambahkan token ke dalam header
-        request.headers['Authorization'] = 'Bearer $token';
+  String formatRupiah(num number) {
+    final formatCurrency =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    return formatCurrency.format(number);
+  }
 
-        // Tambahkan jumlah dana ke request
-        request.fields['jumlah'] = _jumlahDanaController.text;
-
-        // Tambahkan file bukti transfer
-        var stream = http.ByteStream(_buktiTransfer!.openRead());
-        var length = await _buktiTransfer!.length();
-        var multipartFile = http.MultipartFile('bukti_transfer', stream, length,
-            filename: _buktiTransfer!.path.split('/').last);
-
-        request.files.add(multipartFile);
-
-        // Kirim request
-        var response = await request.send();
-
-        // Cek hasil response
-        if (response.statusCode == 201) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                content: Text(
-                  'Data berhasil dikirim',
+  // Pop-up untuk konfirmasi sebelum pengiriman data
+  void _showConfirmationPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+                9), // Border radius sesuai dengan spesifikasi
+          ),
+          child: Container(
+            width:
+                MediaQuery.of(context).size.width * 0.8, // Lebar 80% dari layar
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Teks konfirmasi
+                Text(
+                  'Data yang Anda masukkan sudah benar?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                actions: [
-                  TextButton(
+                SizedBox(height: 20),
+                // Tombol 'Benar'
+                Container(
+                  width: double.infinity, // Tombol memenuhi lebar container
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Color(0xFF4AA2D9), // Border biru
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
                     onPressed: () {
-                      DashBoardScreen().launch(context);
+                      Navigator.of(context).pop(); // Tutup dialog
+                      tarikSaldo(); // Lanjutkan pengiriman data
                     },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.green),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Text(
-                        'Lanjutkan',
-                        textAlign: TextAlign.center,
+                    child: Text(
+                      'Benar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF4AA2D9),
                       ),
                     ),
                   ),
-                ],
-              );
-            },
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    'Gagal mengirim data. Status Code: ${response.statusCode}')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
+                ),
+                SizedBox(height: 10), // Jarak antara tombol
+                // Tombol 'Cek Ulang'
+                Container(
+                  width: double.infinity, // Tombol memenuhi lebar container
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE2E2E2), // Warna abu-abu untuk Cek Ulang
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pop(); // Tutup dialog tanpa melakukan apa pun
+                    },
+                    child: Text(
+                      'Cek Ulang',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
-      }
-    } else {
-      if (!agreeToTerms) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Anda harus menyetujui syarat dan ketentuan')),
-        );
-      }
-      if (_buktiTransfer == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Anda harus mengunggah bukti transfer')),
-        );
-      }
-    }
+      },
+    );
   }
 
-  // Fungsi untuk memilih file dari galeri
-  Future<void> _pickFile() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _buktiTransfer = File(pickedFile.path);
-      });
-    }
+  void _showSuccessPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Container(
+            height: 300,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  size: 80,
+                  color: Colors.blue,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Pengajuan Anda Berhasil!',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Terima kasih telah mendukung konektivitas desa. Kami akan segera memproses permohonan Anda.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+                SizedBox(height: 20),
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => DashBoardScreen()));
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Text('Formulir Pengajuan Tarik Dana',
-            style: boldTextStyle(size: 18)),
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(Icons.arrow_back_ios,
-              color: appStore.isDarkModeOn ? white : black),
-          iconSize: 18,
-        ),
-        centerTitle: true,
-        elevation: 0.0,
+        title: Text('Formulir Pengajuan Tarik Saldo',
+            style: TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Jumlah dana yang ingin ditarik',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              SizedBox(height: 4),
-              TextFormField(
-                controller: _jumlahDanaController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Masukkan jumlah dana',
-                  border: OutlineInputBorder(),
-                ),
-                style: TextStyle(fontSize: 14),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Belum diisi';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 14),
-              Text('Unggah bukti transfer',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              SizedBox(height: 4),
-              MaterialButton(
-                onPressed: _pickFile,
-                color: Colors.blue,
-                child: Text('Pilih File'),
-                textColor: Colors.white,
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Checkbox(
-                    value: agreeToTerms,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        agreeToTerms = value!;
-                      });
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Daftar Proyek dan Saldo',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            _saldoInvestasi.isNotEmpty
+                ? Table(
+                    border: TableBorder.all(color: Colors.black),
+                    columnWidths: {
+                      0: FlexColumnWidth(1), // Kolom ID investasi
+                      1: FlexColumnWidth(4), // Kolom desa
+                      2: FlexColumnWidth(6), // Kolom saldo
                     },
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Saya setuju dengan syarat dan ketentuan yang berlaku',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Center(
-                child: MaterialButton(
-                  onPressed: _submitForm,
-                  color: PrimaryColor,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
+                    children: _saldoInvestasi.map((item) {
+                      return TableRow(children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(item['id_investasi'].toString()),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(item['desa']),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            formatRupiah(item['saldo']),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ]);
+                    }).toList(),
+                  )
+                : Center(
+                    child:
+                        CircularProgressIndicator()), // Loader jika data belum di-load
+            SizedBox(height: 16),
+            Text('Pilih Proyek Investasi',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            DropdownButtonFormField<String>(
+              value: _selectedInvestasiId,
+              hint: Text('Pilih proyek investasi'),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedInvestasiId = newValue!;
+                });
+              },
+              items: _saldoInvestasi.map<DropdownMenuItem<String>>((item) {
+                return DropdownMenuItem<String>(
+                  value: item['id_investasi'].toString(),
                   child: Text(
-                    "Kirim",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      fontStyle: FontStyle.normal,
-                    ),
-                  ),
-                  textColor: Color(0xffffffff),
-                  height: 40,
-                  minWidth: MediaQuery.of(context).size.width - 64,
+                      '${item['id_investasi']} - ${item['desa']} (${formatRupiah(item['saldo'])})'),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 16),
+            Text('Masukkan nominal',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'Masukkan jumlah dana',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-            ],
-          ),
+            ),
+            SizedBox(height: 14),
+            Text('Syarat dan Ketentuan', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n'
+              '2. Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.\n'
+              '3. Informasi pribadi pengguna dilindungi sesuai Kebijakan Privasi. VestNet berkomitmen untuk menjaga kerahasiaan dan keamanan data pribadi pengguna sesuai dengan kebijakan privasi yang berlaku.',
+              style: TextStyle(fontSize: 12),
+            ),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                Checkbox(
+                  value: agreeToTerms,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      agreeToTerms = value!;
+                    });
+                  },
+                ),
+                Expanded(
+                  child: Text(
+                    'Saya setuju dengan syarat dan ketentuan yang berlaku',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Center(
+              child: MaterialButton(
+                onPressed: () {
+                  if (_selectedInvestasiId != null &&
+                      _amountController.numberValue > 0 &&
+                      agreeToTerms) {
+                    _showConfirmationPopup(); // Memunculkan pop-up konfirmasi
+                  } else {
+                    print('Form tidak valid');
+                  }
+                },
+                color: Theme.of(context).primaryColor,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0)),
+                child: Text(
+                  "Kirim",
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                ),
+                textColor: Color(0xffffffff),
+                height: 40,
+                minWidth: MediaQuery.of(context).size.width - 64,
+              ),
+            ),
+          ],
         ),
       ),
     );

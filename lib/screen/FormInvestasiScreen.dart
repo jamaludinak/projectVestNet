@@ -21,7 +21,8 @@ class FormInvestasi extends StatefulWidget {
 
 class FormInvestasiState extends State<FormInvestasi> {
   final _formKey = GlobalKey<FormState>();
-  final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+  final currencyFormatter =
+      NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
   int? _selectedAmount;
   bool agreeToTerms = false;
   File? _selectedFile;
@@ -53,7 +54,13 @@ class FormInvestasiState extends State<FormInvestasi> {
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg'],
+      allowedExtensions: [
+        'jpg',
+        'jpeg',
+        'png',
+        'heic',
+        'pdf'
+      ], // tambahkan ekstensi yang sesuai
     );
 
     if (result != null) {
@@ -76,21 +83,26 @@ class FormInvestasiState extends State<FormInvestasi> {
         final token = await getToken();
         if (token == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Token tidak ditemukan, silakan login kembali')),
+            SnackBar(
+                content: Text('Token tidak ditemukan, silakan login kembali')),
           );
           return;
         }
 
-        var request = http.MultipartRequest('POST', Uri.parse('${baseUrl}api/investInProject'));
+        // Siapkan request multipart
+        var request = http.MultipartRequest(
+            'POST', Uri.parse('${baseUrl}api/investInProject'));
         request.headers['Authorization'] = 'Bearer $token';
         request.fields['id_proyek'] = widget.projectId.toString();
         request.fields['total_investasi'] = _selectedAmount.toString();
 
         // Upload bukti transfer
         request.files.add(await http.MultipartFile.fromPath(
-          'bukti_transfer', _selectedFile!.path,
+          'bukti_transfer',
+          _selectedFile!.path,
         ));
 
+        // Kirim request
         final response = await request.send();
 
         if (response.statusCode == 201) {
@@ -98,7 +110,8 @@ class FormInvestasiState extends State<FormInvestasi> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                content: Text('Data berhasil dikirim', textAlign: TextAlign.center),
+                content:
+                    Text('Investasi berhasil!', textAlign: TextAlign.center),
                 actions: [
                   Center(
                     child: OutlinedButton(
@@ -121,7 +134,7 @@ class FormInvestasiState extends State<FormInvestasi> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal mengirim data investasi')),
+            SnackBar(content: Text('Gagal mengirim investasi.')),
           );
         }
       } catch (e) {
@@ -179,7 +192,8 @@ class FormInvestasiState extends State<FormInvestasi> {
               children: [
                 // Jumlah Investasi
                 Text('Jumlah Investasi',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
                 GridView.builder(
                   shrinkWrap: true,
@@ -220,7 +234,9 @@ class FormInvestasiState extends State<FormInvestasi> {
                 // Metode Pembayaran
                 Text('Metode Pembayaran',
                     style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue)),
                 Card(
                   elevation: 2,
                   child: Padding(
@@ -229,17 +245,22 @@ class FormInvestasiState extends State<FormInvestasi> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Transfer - Bank Mandiri',
+                          'Transfer Bank Mandiri',
                           style: TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          'Nomer Rekening: 000000000\nAtas Nama: Toni Anwar',
+                          'Nomer Rekening\t: 000000000\nAtas Nama\t: Toni Anwar',
                           style: TextStyle(fontSize: 14),
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Tunai\nSilakan hubungi kami untuk detail lebih lanjut.',
+                          'Tunai',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Silakan hubungi kami untuk detail lebih lanjut.',
                           style: TextStyle(fontSize: 14),
                         ),
                       ],
@@ -275,10 +296,13 @@ class FormInvestasiState extends State<FormInvestasi> {
                   height: 40,
                 ),
 
-                SizedBox(height: 16),
-
+                SizedBox(height: 14),
+                Text('Syarat dan Ketentuan',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(
-                  'Dengan berinvestasi, Anda menyetujui syarat dan ketentuan yang berlaku.',
+                  '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n'
+                  '2. Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.\n'
+                  '3. Informasi pribadi pengguna dilindungi sesuai Kebijakan Privasi. VestNet berkomitmen untuk menjaga kerahasiaan dan keamanan data pribadi pengguna sesuai dengan kebijakan privasi yang berlaku.',
                   style: TextStyle(fontSize: 12),
                 ),
                 SizedBox(height: 16),

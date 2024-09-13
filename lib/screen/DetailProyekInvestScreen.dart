@@ -31,7 +31,7 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
   Future<Map<String, dynamic>> fetchProjectDetails(int projectId) async {
     final AuthService _authService = AuthService();
     String? token = await _authService.getToken();
-    
+
     final response = await http.get(
       Uri.parse('${baseUrl}api/getProjectInvestDetail/$projectId'),
       headers: {
@@ -66,7 +66,8 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: Icon(Icons.arrow_back_ios, color: appStore.isDarkModeOn ? white : black),
+          icon: Icon(Icons.arrow_back_ios,
+              color: appStore.isDarkModeOn ? white : black),
           iconSize: 18,
         ),
         centerTitle: true,
@@ -83,7 +84,7 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
             return Center(child: Text('No project data available'));
           } else {
             var project = snapshot.data!;
-            
+
             // Data dari API
             String projectName = project['projectName'];
             String location = project['location'];
@@ -92,8 +93,13 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
             int jumlahPendukung = project['jumlahPendukung'];
             String status = project['status'];
             double presentasiSaham = project['presentasiSaham'];
-            double totalBagiHasil = project['totalBagiHasil'];
             double pendapatanBulanan = project['pendapatanBulanan'];
+
+            // Mengubah format tanggal
+            DateTime parsedDate =
+                DateTime.parse(tanggalInvestasi);
+            String formattedDate = DateFormat('d MMMM yyyy', 'id')
+                .format(parsedDate);
 
             return SingleChildScrollView(
               child: Container(
@@ -126,7 +132,8 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                     // Desa dan Lokasi
                     Text(
                       location,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     Divider(
                       color: Colors.black,
@@ -142,18 +149,27 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Total Investasi',
-                                style: TextStyle(fontSize: 14, color: grey, fontWeight: FontWeight.w900)),
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: grey,
+                                    fontWeight: FontWeight.w900)),
                             Text(currencyFormatter.format(totalInvestasi),
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w900)),
                           ],
                         ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text('Tanggal Investasi',
-                                style: TextStyle(fontSize: 14, color: grey, fontWeight: FontWeight.w900)),
-                            Text(tanggalInvestasi,
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: grey,
+                                    fontWeight: FontWeight.w900)),
+                            Text(
+                                formattedDate, // Menggunakan tanggal yang sudah diformat
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w900)),
                           ],
                         ),
                       ],
@@ -165,7 +181,9 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       child: Text(
                         '$jumlahPendukung orang sudah mendukung proyek ini',
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black),
                       ),
                     ),
                     Divider(
@@ -179,44 +197,46 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Status',
-                            style: TextStyle(fontSize: 16, color: grey, fontWeight: FontWeight.w900)),
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: grey,
+                                fontWeight: FontWeight.w900)),
                         Text(status,
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w900, color: GreenNormalColor)),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: GreenNormalColor)),
                       ],
                     ),
-                    SizedBox(height: 8), // Spacing
+                    SizedBox(height: 16), // Spacing
 
                     // Presentasi Saham dan Total Bagi Hasil
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Presentasi Saham',
-                            style: TextStyle(fontSize: 16, color: grey, fontWeight: FontWeight.w900)),
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: grey,
+                                fontWeight: FontWeight.w900)),
                         Text('${presentasiSaham.toStringAsFixed(2)}%',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w900)),
                       ],
                     ),
-                    SizedBox(height: 8), // Spacing
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Total Bagi Hasil',
-                            style: TextStyle(fontSize: 16, color: grey, fontWeight: FontWeight.w900)),
-                        Text(currencyFormatter.format(totalBagiHasil),
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-                      ],
-                    ),
-                    SizedBox(height: 8), // Spacing
-
+                    SizedBox(height: 8),
                     // Pendapatan Bulanan
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Pendapatan Bulanan',
-                            style: TextStyle(fontSize: 16, color: grey, fontWeight: FontWeight.w900)),
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: grey,
+                                fontWeight: FontWeight.w900)),
                         Text(currencyFormatter.format(pendapatanBulanan),
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w900)),
                       ],
                     ),
                   ],
