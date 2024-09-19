@@ -175,15 +175,22 @@ class _ProjectCardState extends State<ProjectCard> {
                 Flexible(
                   flex: 4,
                   child: AspectRatio(
-                    aspectRatio: 3/2,
+                    aspectRatio: 3 / 2,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset(
-                        "images/cp_card1.png",
+                      child: Image.network(
+                        proyek.fotoBanner,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Icon(Icons.broken_image,
                               size: 50, color: Colors.grey);
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return Center(child: CircularProgressIndicator());
+                          }
                         },
                       ),
                     ),
@@ -389,7 +396,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                 Flexible(
                   flex: 4,
                   child: AspectRatio(
-                    aspectRatio: 3/2,
+                    aspectRatio: 3 / 2,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
                       child: Image.asset(
@@ -482,7 +489,8 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                             ),
                           ),
                           Text(
-                            currencyFormatter.format(project['pendapatanBulanan']),
+                            currencyFormatter
+                                .format(project['pendapatanBulanan']),
                             style: TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,

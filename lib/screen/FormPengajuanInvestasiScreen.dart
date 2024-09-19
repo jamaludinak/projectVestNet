@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:dio/dio.dart';
-import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:file_picker/file_picker.dart';
 
 import '../component/form/PengajuanInvest/dropdown.dart';
 import '../component/form/PengajuanInvest/field.dart';
@@ -29,15 +29,12 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
   final TextEditingController _accountHolderController =
       TextEditingController();
   final TextEditingController _addressController =
-      TextEditingController(); // Tambahkan Controller untuk Alamat
+      TextEditingController();
 
   bool agreeToTerms = false;
   String dropdownValue2 = 'BCA';
-  final ImagePicker _picker = ImagePicker();
   XFile? _ktpFile;
   XFile? _npwpFile;
-
-  Dio dio = Dio();
 
   @override
   void initState() {
@@ -78,45 +75,49 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
     try {
       String? token = await getToken();
 
-      // Mempersiapkan data form
-      FormData formData = FormData.fromMap({
-        'nama_lengkap': _nameController.text,
-        'tempat_lahir': _placeController.text,
-        'tgl_lahir': _dateController.text,
-        'nik': _nikController.text,
-        'npwp': _npwpController.text,
-        'jenis_bank': dropdownValue2,
-        'no_rekening': _bankAccountController.text,
-        'nama_pemilik_rekening': _accountHolderController.text,
-        'no_hp': _phoneController.text,
-        'alamat': _addressController.text, // Tambahkan alamat ke data form
-        'foto_ktp':
-            await MultipartFile.fromFile(_ktpFile!.path, filename: 'ktp.jpg'),
-        'foto_npwp':
-            await MultipartFile.fromFile(_npwpFile!.path, filename: 'npwp.jpg'),
-      });
-
-      // Mengirim data ke server
-      var response = await dio.post(
-        '${baseUrl}api/submitPengajuanInvestasi',
-        data: formData,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${baseUrl}api/submitPengajuanInvestasi'),
       );
 
+      // Add the text fields
+      request.fields['nama_lengkap'] = _nameController.text;
+      request.fields['tempat_lahir'] = _placeController.text;
+      request.fields['tgl_lahir'] = _dateController.text;
+      request.fields['nik'] = _nikController.text;
+      request.fields['npwp'] = _npwpController.text;
+      request.fields['jenis_bank'] = dropdownValue2;
+      request.fields['no_rekening'] = _bankAccountController.text;
+      request.fields['nama_pemilik_rekening'] = _accountHolderController.text;
+      request.fields['no_hp'] = _phoneController.text;
+      request.fields['alamat'] = _addressController.text;
+
+      // Add the KTP and NPWP files
+      if (_ktpFile != null) {
+        request.files
+            .add(await http.MultipartFile.fromPath('foto_ktp', _ktpFile!.path));
+      }
+      if (_npwpFile != null) {
+        request.files.add(
+            await http.MultipartFile.fromPath('foto_npwp', _npwpFile!.path));
+      }
+
+      // Add headers
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Send the request
+      var response = await request.send();
+
       if (response.statusCode == 200) {
-        _showSuccessPopup(); // Tampilkan pop-up sukses jika berhasil
+        _showSuccessPopup(); // Show success if the request is successful
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengirim data. Silakan coba lagi.')),
+          SnackBar(content: Text('Failed to submit data. Please try again.')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: $e')),
+        SnackBar(content: Text('An error occurred: $e')),
       );
     }
   }
@@ -261,20 +262,30 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
     );
   }
 
-  Future<void> _pickKtpImage() async {
-    final XFile? selected =
-        await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _ktpFile = selected;
-    });
+  Future<void> _pickKtpFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'png', 'jpeg'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _ktpFile = XFile(result.files.single.path!);
+      });
+    }
   }
 
-  Future<void> _pickNpwpImage() async {
-    final XFile? selected =
-        await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _npwpFile = selected;
-    });
+  Future<void> _pickNpwpFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'png', 'jpeg'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _npwpFile = XFile(result.files.single.path!);
+      });
+    }
   }
 
   Future<String?> getToken() async {
@@ -374,13 +385,13 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                 UploadButtonComponent(
                   label: "Upload Foto KTP *jpg",
                   file: _ktpFile,
-                  onTap: _pickKtpImage,
+                  onTap: _pickKtpFile,
                 ),
                 SizedBox(height: 8),
                 UploadButtonComponent(
                   label: "Upload Foto NPWP *jpg",
                   file: _npwpFile,
-                  onTap: _pickNpwpImage,
+                  onTap: _pickNpwpFile,
                 ),
                 SizedBox(height: 14),
                 Text('Syarat dan Ketentuan',

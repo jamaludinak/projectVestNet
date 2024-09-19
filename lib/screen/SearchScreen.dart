@@ -63,7 +63,7 @@ class SearchScreenState extends State<SearchScreen> {
             allProjects; // Jika pencarian kosong, tampilkan semua proyek
       } else {
         filteredProjects = allProjects.where((project) {
-          final desaName = project.desa?.toLowerCase() ?? '';
+          final desaName = project.desa.toLowerCase() ?? '';
           final input = query.toLowerCase();
 
           return desaName.contains(input);
@@ -88,7 +88,7 @@ class SearchScreenState extends State<SearchScreen> {
             allProjects; // Reset jika tidak ada kabupaten dan pencarian
       } else {
         filteredProjects = allProjects.where((project) {
-          final desaName = project.desa?.toLowerCase() ?? '';
+          final desaName = project.desa.toLowerCase() ?? '';
 
           return (kabupaten.isEmpty || project.kabupaten == kabupaten);
         }).toList();

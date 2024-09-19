@@ -35,6 +35,14 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body)['riwayatMutasi'];
+
+        // Sort the data based on the 'created_at' field in descending order (latest first)
+        data.sort((a, b) {
+          DateTime dateA = DateTime.parse(a['created_at']);
+          DateTime dateB = DateTime.parse(b['created_at']);
+          return dateB.compareTo(dateA); // Sorts from newest to oldest
+        });
+
         setState(() {
           mutasiList = data;
           isLoading = false;

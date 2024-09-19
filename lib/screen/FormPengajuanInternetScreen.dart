@@ -115,24 +115,83 @@ class _FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Konfirmasi Pengajuan'),
-          content: Text('Data yang Anda masukkan sudah benar?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Tutup dialog
-              },
-              child: Text('Cek Ulang'),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+                9), // Border radius sesuai dengan spesifikasi
+          ),
+          child: Container(
+            width:
+                MediaQuery.of(context).size.width * 0.8, // Lebar 80% dari layar
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Teks konfirmasi
+                Text(
+                  'Data yang Anda masukkan sudah benar?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20),
+                // Tombol 'Benar'
+                Container(
+                  width: double.infinity, // Tombol memenuhi lebar container
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Color(0xFF4AA2D9), // Border biru
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Tutup dialog
+                      _submitData(); // Lanjutkan pengiriman data
+                    },
+                    child: Text(
+                      'Benar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF4AA2D9),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10), // Jarak antara tombol
+                // Tombol 'Cek Ulang'
+                Container(
+                  width: double.infinity, // Tombol memenuhi lebar container
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE2E2E2), // Warna abu-abu untuk Cek Ulang
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pop(); // Tutup dialog tanpa melakukan apa pun
+                    },
+                    child: Text(
+                      'Cek Ulang',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Tutup dialog konfirmasi
-                _submitData(); // Lanjutkan pengiriman data
-              },
-              child: Text('Benar'),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -142,22 +201,49 @@ class _FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          content: Text(
-            'Pengajuan internet berhasil dikirim dan akan diproses.',
-            textAlign: TextAlign.center,
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => DashBoardScreen()),
-                );
-              },
-              child: Text('Lanjutkan'),
+          child: Container(
+            height: 300,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  size: 80,
+                  color: Colors.blue,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Pengajuan Anda Berhasil!',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Terima kasih telah mendukung konektivitas desa. Kami akan segera memproses permohonan Anda.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+                SizedBox(height: 20),
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => DashBoardScreen()));
+                  },
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );

@@ -30,10 +30,6 @@ class _DetailAkunState extends State<DetailAkun> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
 
-      if (token == null) {
-        throw Exception('Token not found');
-      }
-
       final response = await http.get(
         Uri.parse('${baseUrl}api/user/profile'),
         headers: {
