@@ -237,8 +237,12 @@ class _FormulirPengajuanInternetState extends State<FormulirPengajuanInternet> {
                   icon: Icon(Icons.close),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => DashBoardScreen()));
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DashBoardScreen()),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                 ),
               ],

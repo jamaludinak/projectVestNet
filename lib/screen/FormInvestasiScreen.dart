@@ -116,7 +116,12 @@ class FormInvestasiState extends State<FormInvestasi> {
                   Center(
                     child: OutlinedButton(
                       onPressed: () {
-                        DashBoardScreen().launch(context);
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => DashBoardScreen()),
+                          (Route<dynamic> route) => false,
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: PrimaryColor),

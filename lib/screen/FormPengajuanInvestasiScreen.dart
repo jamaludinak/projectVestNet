@@ -28,8 +28,7 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
   final TextEditingController _bankAccountController = TextEditingController();
   final TextEditingController _accountHolderController =
       TextEditingController();
-  final TextEditingController _addressController =
-      TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   bool agreeToTerms = false;
   String dropdownValue2 = 'BCA';
@@ -250,8 +249,12 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                   icon: Icon(Icons.close),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => DashBoardScreen()));
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DashBoardScreen()),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                 ),
               ],

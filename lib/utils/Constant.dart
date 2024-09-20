@@ -7,7 +7,8 @@ import '../model/Proyek/ProyekModel.dart';
 import '../services/auth_service.dart';
 import 'Colors.dart';
 
-const String baseUrl = "https://vestnet.id/";
+const String baseUrl = "http://localhost:8000/";
+const String baseUrl2 = "https://vestnet.id";
 
 const String termsAndConditions = 'Syarat dan Ketentuan\n\n'
     '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n\n'
@@ -178,19 +179,12 @@ class _ProjectCardState extends State<ProjectCard> {
                     aspectRatio: 3 / 2,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.network(
-                        proyek.fotoBanner,
+                      child: Image.asset(
+                        "images/cp_card1.png",
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Icon(Icons.broken_image,
                               size: 50, color: Colors.grey);
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          } else {
-                            return Center(child: CircularProgressIndicator());
-                          }
                         },
                       ),
                     ),
