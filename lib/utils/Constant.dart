@@ -8,12 +8,85 @@ import '../services/auth_service.dart';
 import 'Colors.dart';
 
 const String baseUrl = "http://localhost:8000/";
-const String baseUrl2 = "https://vestnet.id";
 
-const String termsAndConditions = 'Syarat dan Ketentuan\n\n'
-    '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n\n'
-    '2. Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.\n\n'
-    '3. Informasi pribadi pengguna dilindungi sesuai Kebijakan Privasi. VestNet berkomitmen untuk menjaga kerahasiaan dan keamanan data pribadi pengguna sesuai dengan kebijakan privasi yang berlaku.';
+class TermsAndConditionsItem extends StatelessWidget {
+  final int number;
+  final String text;
+
+  const TermsAndConditionsItem({
+    Key? key,
+    required this.number,
+    required this.text,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$number. ',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget buildTermsAndConditions() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Syarat dan Ketentuan',
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+      ),
+      SizedBox(height: 16),
+      TermsAndConditionsItem(
+        number: 1,
+        text:
+            'Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.',
+      ),
+      TermsAndConditionsItem(
+        number: 2,
+        text:
+            'Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.',
+      ),
+      TermsAndConditionsItem(
+        number: 3,
+        text:
+            'Informasi pribadi pengguna dilindungi sesuai Kebijakan Privasi. VestNet berkomitmen untuk menjaga kerahasiaan dan keamanan data pribadi pengguna sesuai dengan kebijakan privasi yang berlaku.',
+      ),
+    ],
+  );
+}
+
+Widget ImageFromApi(String imageUrl) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      double screenWidth = constraints.maxWidth;
+
+      return Container(
+        width: screenWidth * 0.3,
+        height: screenWidth * 0.3 * 0.5,
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit
+              .contain,
+        ),
+      );
+    },
+  );
+}
 
 const List<String> provinsiList = ['Jawa Tengah'];
 const Map<String, List<String>> kabupatenList = {

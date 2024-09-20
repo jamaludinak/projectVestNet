@@ -21,21 +21,19 @@ class DetailProyek extends StatefulWidget {
 
 class DetailProyekState extends State<DetailProyek> {
   late Future<ProyekModel> projectDetails;
-  late Future<bool> hasInvested; // Future untuk cek apakah sudah investasi
+  late Future<bool> hasInvested;
 
   @override
   void initState() {
     super.initState();
     projectDetails = fetchProjectDetails(widget.projectId);
     hasInvested = checkIfUserHasInvested(
-        widget.projectId); // Inisiasi pengecekan investasi
+        widget.projectId);
   }
 
-  // Fungsi untuk fetch detail proyek
   Future<ProyekModel> fetchProjectDetails(int projectId) async {
     final response =
         await http.get(Uri.parse('${baseUrl}api/proyek/$projectId'));
-
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       return ProyekModel.fromJson(data['proyek']);
@@ -44,7 +42,6 @@ class DetailProyekState extends State<DetailProyek> {
     }
   }
 
-  // Fungsi untuk mengecek apakah user sudah investasi
   Future<bool> checkIfUserHasInvested(int projectId) async {
     final AuthService _authService = AuthService();
     String? token = await _authService.getToken();
@@ -60,7 +57,7 @@ class DetailProyekState extends State<DetailProyek> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return data['invested']; // Mengembalikan nilai boolean true/false
+      return data['invested'];
     } else {
       throw Exception('Failed to check investment status');
     }
@@ -143,7 +140,7 @@ class DetailProyekState extends State<DetailProyek> {
                     Text(
                       '${proyek.desa}, ${proyek.kecamatan}, ${proyek.kabupaten}',
                       style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                     Divider(
                       color: Colors.black,
@@ -155,12 +152,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Min Investasi',
                             style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w900,
                                 color: grey)),
                         Text('Terkumpul',
                             style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w900,
                                 color: grey)),
                       ],
@@ -170,10 +167,10 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text(currencyFormatter.format(proyek.minInvest),
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w900)),
+                                fontSize: 12, fontWeight: FontWeight.w900)),
                         Text(currencyFormatter.format(proyek.danaTerkumpul),
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w900)),
+                                fontSize: 12, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     16.height,
@@ -182,12 +179,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Dana yang dibutuhkan',
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(currencyFormatter.format(proyek.targetInvest),
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w900)),
+                                fontSize: 12, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     8.height,
@@ -196,12 +193,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Status',
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(proyek.status,
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w900,
                                 color: GreenNormalColor)),
                       ],
@@ -212,12 +209,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Estimasi ROI per Tahun',
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text('${proyek.roi} %',
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w900)),
+                                fontSize: 12, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     8.height,
@@ -226,12 +223,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Grade',
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(proyek.grade,
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w900,
                                 color: GreenBoldColor)),
                       ],
@@ -243,7 +240,7 @@ class DetailProyekState extends State<DetailProyek> {
                         Text(
                           'BEP',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 12,
                             color: grey,
                             fontWeight: FontWeight.w900,
                           ),
@@ -251,14 +248,14 @@ class DetailProyekState extends State<DetailProyek> {
                         Text(
                           '${proyek.bep}',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 12,
                             fontWeight: FontWeight.w900,
                             color: GreenBoldColor,
                           ),
                         ),
                       ],
                     ),
-                    // Cek apakah user sudah investasi atau belum
+                    
                     FutureBuilder<bool>(
                       future: hasInvested,
                       builder: (context, snapshot) {
@@ -269,7 +266,7 @@ class DetailProyekState extends State<DetailProyek> {
                           return Center(
                               child: Text('Error checking investment status'));
                         } else if (snapshot.hasData && !snapshot.data!) {
-                          // Jika belum investasi, tampilkan tombol
+                          
                           return Center(
                             child: MaterialButton(
                               onPressed: () {
@@ -290,7 +287,7 @@ class DetailProyekState extends State<DetailProyek> {
                               child: Text(
                                 "Mulai Investasi Sekarang!",
                                 style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w800,
                                     fontStyle: FontStyle.normal),
                               ),
@@ -301,7 +298,8 @@ class DetailProyekState extends State<DetailProyek> {
                         } else {
                           return Center(
                               child: Text(
-                                  'Anda sudah berinvestasi di proyek ini.'));
+                                  'Anda sudah berinvestasi di proyek ini',
+                                  style: boldTextStyle(size: 16)));
                         }
                       },
                     ),
