@@ -218,11 +218,11 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                   onPressed: () {
                     Navigator.of(context).pop();
                     Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => DashBoardScreen()),
-                          (Route<dynamic> route) => false,
-                );
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DashBoardScreen()),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                 ),
               ],
@@ -312,7 +312,8 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
               ),
             ),
             SizedBox(height: 14),
-            Text('Syarat dan Ketentuan', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Syarat dan Ketentuan',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             Text(
               '1. Pengguna harus berusia minimal 18 tahun. Aplikasi ini hanya dapat digunakan oleh individu yang sudah dewasa dan mampu membuat keputusan keuangan sendiri.\n'
               '2. Semua investasi adalah final dan tidak ada jaminan keuntungan. Setelah melakukan investasi, dana tidak dapat ditarik kembali, dan VestNet tidak menjamin bahwa pengguna akan mendapatkan keuntungan dari investasi yang dilakukan.\n'

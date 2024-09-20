@@ -79,74 +79,8 @@ class FormInvestasiState extends State<FormInvestasi> {
         agreeToTerms &&
         _selectedAmount != null &&
         _selectedFile != null) {
-      try {
-        final token = await getToken();
-        if (token == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Token tidak ditemukan, silakan login kembali')),
-          );
-          return;
-        }
-
-        // Siapkan request multipart
-        var request = http.MultipartRequest(
-            'POST', Uri.parse('${baseUrl}api/investInProject'));
-        request.headers['Authorization'] = 'Bearer $token';
-        request.fields['id_proyek'] = widget.projectId.toString();
-        request.fields['total_investasi'] = _selectedAmount.toString();
-
-        // Upload bukti transfer
-        request.files.add(await http.MultipartFile.fromPath(
-          'bukti_transfer',
-          _selectedFile!.path,
-        ));
-
-        // Kirim request
-        final response = await request.send();
-
-        if (response.statusCode == 201) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                content:
-                    Text('Investasi berhasil!', textAlign: TextAlign.center),
-                actions: [
-                  Center(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => DashBoardScreen()),
-                          (Route<dynamic> route) => false,
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: PrimaryColor),
-                      ),
-                      child: Text(
-                        'Lanjutkan',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: PrimaryColor),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal mengirim investasi.')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
-        );
-      }
+      // Tampilkan pop-up konfirmasi sebelum pengiriman data
+      _showConfirmationPopup();
     } else {
       if (!agreeToTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -164,6 +98,181 @@ class FormInvestasiState extends State<FormInvestasi> {
         );
       }
     }
+  }
+
+  void tarikSaldo() async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Token tidak ditemukan, silakan login kembali')),
+        );
+        return;
+      }
+
+      // Siapkan request multipart
+      var request = http.MultipartRequest(
+          'POST', Uri.parse('${baseUrl}api/investInProject'));
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['id_proyek'] = widget.projectId.toString();
+      request.fields['total_investasi'] = _selectedAmount.toString();
+
+      // Upload bukti transfer
+      request.files.add(await http.MultipartFile.fromPath(
+        'bukti_transfer',
+        _selectedFile!.path,
+      ));
+
+      // Kirim request
+      final response = await request.send();
+
+      if (response.statusCode == 201) {
+        // Tampilkan pop-up sukses
+        _showSuccessPopup();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengirim investasi.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
+      );
+    }
+  }
+
+  void _showConfirmationPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Data yang Anda masukkan sudah benar?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Color(0xFF4AA2D9), width: 2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      tarikSaldo(); // Lanjutkan pengiriman data
+                    },
+                    child: Text(
+                      'Benar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF4AA2D9),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE2E2E2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      'Cek Ulang',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSuccessPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Container(
+            height: 300,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  size: 80,
+                  color: Colors.blue,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Pengajuan Anda Berhasil!',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Terima kasih telah mendukung konektivitas desa. Kami akan segera memproses permohonan Anda.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+                SizedBox(height: 20),
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DashBoardScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
