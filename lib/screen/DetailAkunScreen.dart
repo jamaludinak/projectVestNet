@@ -110,36 +110,13 @@ class _DetailAkunState extends State<DetailAkun> {
                       children: [
                         ProfileDetailRow(
                             label: "Nama Lengkap",
-                            value: namaLengkap ?? "Nama lengkap pengguna"),
+                            value: namaLengkap ?? "Belum Melengkapi Profile"),
                         ProfileDetailRow(
                             label: "Email",
                             value: email ?? "Alamat email yg terdaftar"),
                         ProfileDetailRow(
                             label: "No. Telpon",
-                            value: noHp ?? "No. Telp Pengguna"),
-                        SizedBox(height: 16),
-                        Container(
-                          width: double.infinity,
-                          child: MaterialButton(
-                            onPressed: () {
-                              // Action for edit profile
-                            },
-                            color: PrimaryColor,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0)),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            child: Text(
-                              "Edit Profile",
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  fontStyle: FontStyle.normal,
-                                  color: Colors.white),
-                            ),
-                          ),
-                        ),
+                            value: noHp ?? "Belum Melengkapi Profile"),
                         SizedBox(height: 16),
                         Center(
                           child: MaterialButton(

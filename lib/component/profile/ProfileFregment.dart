@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import '../../screen/LoginScreen.dart'; // Tambahkan import LoginScreen untuk diarahkan ke halaman login
 import '../../screen/DetailAkunVerifScreen.dart';
 import '../../screen/DetailAkunScreen.dart';
 import '../../screen/PengaturanScreen.dart';
@@ -60,6 +60,18 @@ class ProfileFragmentState extends State<ProfileFragment> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token'); // Menghapus token dari SharedPreferences
+
+    // Arahkan ke LoginScreen setelah logout
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
@@ -162,8 +174,8 @@ class ProfileFragmentState extends State<ProfileFragment> {
                       showConfirmDialogCustom(
                         context,
                         title: 'Apakah Anda yakin ingin keluar?',
-                        onAccept: (v) {
-                          finish(context);
+                        onAccept: (v) async {
+                          await logout(); // Panggil fungsi logout
                         },
                       );
                     },
