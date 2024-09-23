@@ -46,8 +46,9 @@ class ProfileFragmentState extends State<ProfileFragment> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          nameProfile = data['nama_lengkap'];
+          nameProfile = data['username'];
           email = data['email'];
+          nik = data['nik'];
           isLoading = false;
         });
       } else {

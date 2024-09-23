@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 
+import '../component/awal/ResetPassword/ForgotPasswordScreen.dart';
+
 class Pengaturan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -37,7 +39,7 @@ class Pengaturan extends StatelessWidget {
             title: Text('Keamanan', style: primaryTextStyle(size: 16, color: Colors.black)),
             trailing: Icon(Icons.arrow_forward_ios, color: Colors.black),
             onTap: () {
-              // Handle Keamanan navigation
+              ForgotPasswordScreen().launch(context);
             },
           ),
         ],

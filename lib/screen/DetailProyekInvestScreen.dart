@@ -20,11 +20,14 @@ class DetailProyekInvest extends StatefulWidget {
 
 class DetailProyekInvestState extends State<DetailProyekInvest> {
   late Future<Map<String, dynamic>> projectDetails;
+  List jurnalList = [];
+  bool isLoadingJurnal = true;
 
   @override
   void initState() {
     super.initState();
     projectDetails = fetchProjectDetails(widget.projectId);
+    fetchJurnalData(); // Fetch Jurnal Investasi Data
   }
 
   // Fungsi untuk mengambil detail proyek dari API
@@ -44,6 +47,38 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
       return json.decode(response.body);
     } else {
       throw Exception('Failed to load project details');
+    }
+  }
+
+  // Fungsi untuk mengambil jurnal investasi dari API
+  Future<void> fetchJurnalData() async {
+    try {
+      final AuthService _authService = AuthService();
+      String? token = await _authService.getToken();
+
+      final response = await http.get(
+        Uri.parse('${baseUrl}api/jurnal-investasi/${widget.projectId}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        setState(() {
+          jurnalList = data; // Tidak perlu mengurutkan lagi di sini
+          isLoadingJurnal = false;
+        });
+      } else {
+        throw Exception('Failed to load jurnal data');
+      }
+    } catch (e) {
+      print('Error: $e');
+      setState(() {
+        isLoadingJurnal = false;
+      });
     }
   }
 
@@ -96,10 +131,9 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
             double pendapatanBulanan = project['pendapatanBulanan'];
 
             // Mengubah format tanggal
-            DateTime parsedDate =
-                DateTime.parse(tanggalInvestasi);
-            String formattedDate = DateFormat('d MMMM yyyy', 'id')
-                .format(parsedDate);
+            DateTime parsedDate = DateTime.parse(tanggalInvestasi);
+            String formattedDate =
+                DateFormat('d MMMM yyyy', 'id').format(parsedDate);
 
             return SingleChildScrollView(
               child: Container(
@@ -150,12 +184,12 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                           children: [
                             Text('Total Investasi',
                                 style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 13,
                                     color: grey,
                                     fontWeight: FontWeight.w900)),
                             Text(currencyFormatter.format(totalInvestasi),
                                 style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w900)),
+                                    fontSize: 13, fontWeight: FontWeight.w900)),
                           ],
                         ),
                         Column(
@@ -163,13 +197,13 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                           children: [
                             Text('Tanggal Investasi',
                                 style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 13,
                                     color: grey,
                                     fontWeight: FontWeight.w900)),
                             Text(
                                 formattedDate, // Menggunakan tanggal yang sudah diformat
                                 style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w900)),
+                                    fontSize: 13, fontWeight: FontWeight.w900)),
                           ],
                         ),
                       ],
@@ -181,7 +215,7 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       child: Text(
                         '$jumlahPendukung orang sudah mendukung proyek ini',
                         style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Colors.black),
                       ),
@@ -198,17 +232,17 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       children: [
                         Text('Status',
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(status,
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w900,
                                 color: GreenNormalColor)),
                       ],
                     ),
-                    SizedBox(height: 16), // Spacing
+                    SizedBox(height: 14), // Spacing
 
                     // Presentasi Saham dan Total Bagi Hasil
                     Row(
@@ -216,12 +250,12 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       children: [
                         Text('Presentasi Saham',
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text('${presentasiSaham.toStringAsFixed(2)}%',
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w900)),
+                                fontSize: 12, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     SizedBox(height: 8),
@@ -231,14 +265,131 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       children: [
                         Text('Pendapatan Bulanan',
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(currencyFormatter.format(pendapatanBulanan),
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w900)),
+                                fontSize: 12, fontWeight: FontWeight.w900)),
                       ],
                     ),
+                    SizedBox(height: 24),
+
+                    // Bagian Riwayat Jurnal Investasi
+                    Text(
+                      'Riwayat Keuangan',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Divider(
+                      color: Colors.black,
+                      thickness: 1,
+                    ),
+                    isLoadingJurnal
+                        ? Center(child: CircularProgressIndicator())
+                        : jurnalList.isEmpty
+                            ? Center(child: Text('Tidak ada riwayat jurnal'))
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: jurnalList.length,
+                                itemBuilder: (context, index) {
+                                  var jurnal = jurnalList[index];
+
+                                  // Get fields from jurnal
+                                  var keterangan = jurnal['keterangan'];
+                                  var nominal = double.tryParse(
+                                          jurnal['nominal'].toString()) ??
+                                      0.0;
+                                  var pemasukan = jurnal['pemasukan'];
+                                  var saldoAkhir = double.tryParse(
+                                          jurnal['saldo_akhir'].toString()) ??
+                                      0.0;
+                                  var tanggal = DateFormat('dd MMM yyyy')
+                                      .format(
+                                          DateTime.parse(jurnal['tanggal']));
+
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0, horizontal: 16.0),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.05),
+                                            spreadRadius: 2,
+                                            blurRadius: 5,
+                                          ),
+                                        ],
+                                      ),
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          backgroundColor: pemasukan
+                                              ? Colors.green
+                                              : Colors.red,
+                                          radius: 25,
+                                          child: Icon(
+                                            pemasukan
+                                                ? Icons.arrow_downward
+                                                : Icons.arrow_upward,
+                                            color: Colors.white,
+                                            size: 28,
+                                          ),
+                                        ),
+                                        title: Text(
+                                          keterangan,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              tanggal,
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                        trailing: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              currencyFormatter.format(nominal),
+                                              style: TextStyle(
+                                                color: pemasukan
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              'Saldo Akhir: ${currencyFormatter.format(saldoAkhir)}',
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                   ],
                 ),
               ),

@@ -240,124 +240,186 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
         title: Text('Formulir Pengajuan Tarik Saldo',
             style: TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Daftar Proyek dan Saldo',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            _saldoInvestasi.isNotEmpty
-                ? Table(
-                    border: TableBorder.all(color: Colors.black),
-                    columnWidths: {
-                      0: FlexColumnWidth(1), // Kolom ID investasi
-                      1: FlexColumnWidth(4), // Kolom desa
-                      2: FlexColumnWidth(6), // Kolom saldo
-                    },
-                    children: _saldoInvestasi.map((item) {
-                      return TableRow(children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(item['id_investasi'].toString()),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(item['desa']),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            formatRupiah(item['saldo']),
-                            textAlign: TextAlign.right,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Pilih Proyek Investasi',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              _saldoInvestasi.isNotEmpty
+                  ? GridView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 2.5,
+                      ),
+                      itemCount: _saldoInvestasi.length,
+                      itemBuilder: (context, index) {
+                        var item = _saldoInvestasi[index];
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedInvestasiId =
+                                  item['id_investasi'].toString();
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _selectedInvestasiId ==
+                                      item['id_investasi'].toString()
+                                  ? Colors.blue
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _selectedInvestasiId ==
+                                        item['id_investasi'].toString()
+                                    ? Colors.blue
+                                    : Colors.grey,
+                                width: 2,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Proyek ' + item['desa'],
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: _selectedInvestasiId ==
+                                              item['id_investasi'].toString()
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Saldo: ${formatRupiah(item['saldo'])}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: _selectedInvestasiId ==
+                                              item['id_investasi'].toString()
+                                          ? Colors.white
+                                          : Colors.grey[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ]);
-                    }).toList(),
-                  )
-                : Center(
-                    child:
-                        CircularProgressIndicator()), // Loader jika data belum di-load
-            SizedBox(height: 16),
-            Text('Pilih Proyek Investasi',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            DropdownButtonFormField<String>(
-              value: _selectedInvestasiId,
-              hint: Text('Pilih proyek investasi'),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedInvestasiId = newValue!;
-                });
-              },
-              items: _saldoInvestasi.map<DropdownMenuItem<String>>((item) {
-                return DropdownMenuItem<String>(
-                  value: item['id_investasi'].toString(),
-                  child: Text(
-                      '${item['id_investasi']} - ${item['desa']} (${formatRupiah(item['saldo'])})'),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 16),
-            Text('Masukkan nominal',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Masukkan jumlah dana',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
+                        );
+                      },
+                    )
+                  : Center(
+                      child: CircularProgressIndicator(),
+                    ),
+              SizedBox(height: 16),
+              Text('Pilih Nominal',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              GridView.count(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                crossAxisCount: 3,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 2.5,
+                children: [50000, 100000, 200000, 300000, 500000, 1000000]
+                    .map((nominal) => GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _amountController.updateValue(nominal.toDouble());
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _amountController.numberValue ==
+                                      nominal.toDouble()
+                                  ? Colors.blue
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _amountController.numberValue ==
+                                        nominal.toDouble()
+                                    ? Colors.blue
+                                    : Colors.grey,
+                                width: 2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                formatRupiah(nominal),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: _amountController.numberValue ==
+                                          nominal.toDouble()
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ))
+                    .toList(),
               ),
-            ),
-            SizedBox(height: 14),
-            buildTermsAndConditions(),
-            SizedBox(height: 14),
-            Row(
-              children: [
-                Checkbox(
-                  value: agreeToTerms,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      agreeToTerms = value!;
-                    });
-                  },
-                ),
-                Expanded(
-                  child: Text(
-                    'Saya setuju dengan syarat dan ketentuan yang berlaku',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              SizedBox(height: 14),
+              buildTermsAndConditions(),
+              SizedBox(height: 14),
+              Row(
+                children: [
+                  Checkbox(
+                    value: agreeToTerms,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        agreeToTerms = value!;
+                      });
+                    },
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            Center(
-              child: MaterialButton(
-                onPressed: () {
-                  if (_selectedInvestasiId != null &&
-                      _amountController.numberValue > 0 &&
-                      agreeToTerms) {
-                    _showConfirmationPopup(); // Memunculkan pop-up konfirmasi
-                  } else {
-                    print('Form tidak valid');
-                  }
-                },
-                color: Theme.of(context).primaryColor,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0)),
-                child: Text(
-                  "Kirim",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                ),
-                textColor: Color(0xffffffff),
-                height: 40,
-                minWidth: MediaQuery.of(context).size.width - 64,
+                  Expanded(
+                    child: Text(
+                      'Saya setuju dengan syarat dan ketentuan yang berlaku',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              SizedBox(height: 16),
+              Center(
+                child: MaterialButton(
+                  onPressed: () {
+                    if (_selectedInvestasiId != null &&
+                        _amountController.numberValue > 0 &&
+                        agreeToTerms) {
+                      _showConfirmationPopup();
+                    } else {
+                      print('Form tidak valid');
+                    }
+                  },
+                  color: Theme.of(context).primaryColor,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0)),
+                  child: Text(
+                    "Kirim",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                  ),
+                  textColor: Color(0xffffffff),
+                  height: 40,
+                  minWidth: MediaQuery.of(context).size.width - 64,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

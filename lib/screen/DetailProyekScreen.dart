@@ -140,7 +140,7 @@ class DetailProyekState extends State<DetailProyek> {
                     Text(
                       '${proyek.desa}, ${proyek.kecamatan}, ${proyek.kabupaten}',
                       style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     Divider(
                       color: Colors.black,

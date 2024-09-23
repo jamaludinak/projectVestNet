@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-
 import '../../../services/auth_service.dart';
-import 'OtpVerificationScreen.dart';
+import '../Button.dart';
+import '../InputField.dart';
+import 'ResetPasswordWithOtpScreen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   @override
@@ -10,32 +11,34 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
+  String? emailError;
+  FocusNode emailFocus = FocusNode();
 
   void _sendOtp() async {
-    String email = _emailController.text;
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Email tidak boleh kosong')),
-      );
-      return;
-    }
+    setState(() {
+      emailError =
+          _emailController.text.isEmpty ? 'Email tidak boleh kosong' : null;
+    });
 
-    bool success = await AuthService().forgotPassword(email);
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('OTP berhasil dikirim ke email Anda.')),
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => OtpVerificationScreen(email: email)),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengirim OTP, coba lagi.')),
-      );
+    if (emailError == null) {
+      bool success = await AuthService().forgotPassword(_emailController.text);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('OTP berhasil dikirim ke email Anda.')),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  ResetPasswordWithOtpScreen(email: _emailController.text)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengirim OTP, coba lagi.')),
+        );
+      }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -70,25 +73,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 40),
-            TextField(
+            CustomTextField(
               controller: _emailController,
-              decoration: InputDecoration(
-                hintText: 'Masukkan Email',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
+              hintText: "Masukkan Email",
+              errorText: emailError,
+              onSubmit: _sendOtp,
+              focusNode: emailFocus,
             ),
             SizedBox(height: 30),
-            ElevatedButton(
+            Button(
               onPressed: _sendOtp,
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              child: Text('Lanjutkan'),
+              label: "Lanjutkan",
+              color: Colors.blue,
             ),
           ],
         ),

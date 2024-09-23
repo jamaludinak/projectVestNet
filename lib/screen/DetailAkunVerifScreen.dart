@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../component/profile/EditAkunBank.dart';
+import '../component/profile/EditNoHP.dart';
+import '../component/profile/EditUsername.dart';
 import '../utils/Colors.dart';
 import '../utils/Constant.dart';
+import 'DetailAkunScreen.dart';
 
 class DetailAkunVerif extends StatefulWidget {
   @override
@@ -105,10 +109,25 @@ class _DetailAkunVerifState extends State<DetailAkunVerif> {
                           child: Icon(Icons.person, size: 40, color: Color(0xFF4AA2D9)), // PrimaryColor
                         ),
                         SizedBox(height: 8),
-                        Text(
-                          username ?? "Username",
-                          textAlign: TextAlign.center,
-                          style: boldTextStyle(size: 18, color: Colors.white),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              username ?? "Username",
+                              textAlign: TextAlign.center,
+                              style: boldTextStyle(size: 18, color: Colors.white),
+                            ),
+                            SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => EditUsername()), // Edit username page
+                                );
+                              },
+                              child: Icon(Icons.edit, color: Colors.white, size: 20),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -122,11 +141,46 @@ class _DetailAkunVerifState extends State<DetailAkunVerif> {
                         ProfileDetailRow(label: "Nama Lengkap", value: namaLengkap ?? "Nama lengkap pengguna"),
                         ProfileDetailRow(label: "Tempat, Tanggal Lahir", value: (tempatLahir ?? "Tempat lahir") + ", " + (tanggalLahir ?? "Tanggal lahir")),
                         ProfileDetailRow(label: "Email", value: email ?? "Alamat email yg terdaftar"),
-                        ProfileDetailRow(label: "No. Telpon", value: noHp ?? "No. Telp Pengguna"),
+                        
+                        // No. HP with edit icon
+                        ProfileDetailRowWithIcon(
+                          label: "No. Telpon", 
+                          value: noHp ?? "No. Telp Pengguna",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => EditNoHP()), // Edit No HP page
+                            );
+                          },
+                        ),
+                        
                         ProfileDetailRow(label: "NIK", value: nik ?? "NIK pengguna"),
                         ProfileDetailRow(label: "NPWP", value: npwp ?? "NPWP pengguna"),
-                        ProfileDetailRow(label: "Nama Bank", value: namaBank ?? "Nama bank"),
-                        ProfileDetailRow(label: "Nomor Rekening", value: nomorRekening ?? "No rekening"),
+
+                        // Nama Bank with edit icon
+                        ProfileDetailRowWithIcon(
+                          label: "Nama Bank", 
+                          value: namaBank ?? "Nama bank",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => EditAkunBank()), // Edit Bank account page
+                            );
+                          },
+                        ),
+
+                        // Nomor Rekening with edit icon
+                        ProfileDetailRowWithIcon(
+                          label: "Nomor Rekening", 
+                          value: nomorRekening ?? "No rekening",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => EditAkunBank()), // Edit Bank account page
+                            );
+                          },
+                        ),
+
                         ProfileDetailRow(label: "Nama Pemilik Rekening", value: namaPemilikRekening ?? "Nama Pemilik"),
                         SizedBox(height: 16),
                         Container(
@@ -155,11 +209,13 @@ class _DetailAkunVerifState extends State<DetailAkunVerif> {
   }
 }
 
-class ProfileDetailRow extends StatelessWidget {
+// Custom row for profile details with icon
+class ProfileDetailRowWithIcon extends StatelessWidget {
   final String label;
   final String value;
+  final VoidCallback onTap;
 
-  ProfileDetailRow({required this.label, required this.value});
+  ProfileDetailRowWithIcon({required this.label, required this.value, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -176,10 +232,19 @@ class ProfileDetailRow extends StatelessWidget {
           ),
           Expanded(
             flex: 1,
-            child: Text(
-              value,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
-              textAlign: TextAlign.right,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+                ),
+                SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onTap,
+                  child: Icon(Icons.edit, size: 20, color: Colors.black),
+                ),
+              ],
             ),
           ),
         ],

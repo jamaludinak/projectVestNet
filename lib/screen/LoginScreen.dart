@@ -4,6 +4,7 @@ import 'package:nb_utils/nb_utils.dart';
 import '../component/awal/Button.dart';
 import '../component/awal/Login/LoginHeader.dart';
 import '../component/awal/InputField.dart';
+import '../component/awal/ResetPassword/ForgotPasswordScreen.dart';
 import '../services/auth_service.dart';
 import '../utils/Colors.dart';
 import 'DashBoardScreen.dart';
@@ -108,7 +109,7 @@ class LoginScreenState extends State<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          // Tambahkan logika untuk lupa password
+                          ForgotPasswordScreen().launch(context);
                         },
                         child: Text(
                           'Lupa Password?',

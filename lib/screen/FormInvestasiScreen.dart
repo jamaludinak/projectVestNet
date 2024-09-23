@@ -305,80 +305,175 @@ class FormInvestasiState extends State<FormInvestasi> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Metode Pembayaran
+                // Bagian Metode Pembayaran (dengan row terpisah untuk ikon dan teks)
                 Text('Metode Pembayaran',
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue)),
-                Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Transfer Bank Mandiri',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
+                        color: Colors.black)),
+                SizedBox(height: 8),
+                Column(
+                  children: [
+                    {
+                      'title1': 'MANDIRI',
+                      'subtitle1': '1340027539658',
+                      'subtitle2': 'Toni Anwar',
+                      'icon': Icons.account_balance,
+                    },
+                    {
+                      'title1': 'TUNAI',
+                      'subtitle1': 'Hubungi Kami',
+                      'subtitle2': 'Untuk Info Detail',
+                      'icon': Icons.attach_money,
+                    },
+                  ].map((Map<String, Object> paymentMethod) {
+                    String title1 = paymentMethod['title1'] as String;
+                    String subtitle1 = paymentMethod['subtitle1'] as String;
+                    String subtitle2 = paymentMethod['subtitle2'] as String;
+                    IconData icon = paymentMethod['icon'] as IconData;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 6,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.grey,
+                            width: 1,
+                          ),
                         ),
-                        Text(
-                          'Nomer Rekening\t: 000000000\nAtas Nama\t: Toni Anwar',
-                          style: TextStyle(fontSize: 14),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 12.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Flexible(
+                                flex: 1,
+                                child: Container(
+                                  height: 64, // Tinggi kustom untuk ikon
+                                  width: 64, // Lebar kustom untuk ikon
+                                  child: Icon(
+                                    icon,
+                                    color: Colors.blue,
+                                    size: 72,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 16), // Jarak antara ikon dan teks
+                              Flexible(
+                                flex:
+                                    3, // Memberikan ruang lebih besar untuk teks
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title1,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black, // Warna teks hitam
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      subtitle1,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    if (subtitle2.isNotEmpty) ...[
+                                      SizedBox(
+                                          height: 4), // Jarak antar subtitle
+                                      Text(
+                                        subtitle2,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Tunai',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Silakan hubungi kami untuk detail lebih lanjut.',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  }).toList(),
                 ),
+
                 SizedBox(height: 16),
                 // Jumlah Investasi
+                // Bagian jumlah investasi
                 Text('Jumlah Investasi',
                     style:
                         TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
+                SizedBox(height: 8),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 3,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio:
+                        2.5, // Menyusun grid dengan aspek rasio yang lebih proporsional
                   ),
                   itemCount: _investmentOptions.length,
                   itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: ChoiceChip(
-                        label: Text(
-                          currencyFormatter.format(_investmentOptions[index]),
+                    int nominal = _investmentOptions[index];
+                    bool isSelected = _selectedAmount == nominal;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedAmount =
+                              nominal; // Menyimpan nilai nominal yang dipilih
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.blue
+                              : Colors
+                                  .white, // Warna card berubah ketika dipilih
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isSelected
+                                ? Colors.blue
+                                : Colors.grey, // Border berubah warna
+                            width: 2,
+                          ),
                         ),
-                        selected: _selectedAmount == _investmentOptions[index],
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedAmount =
-                                selected ? _investmentOptions[index] : null;
-                          });
-                        },
-                        selectedColor: PrimaryColor,
-                        backgroundColor: Colors.grey[200],
-                        labelStyle: TextStyle(
-                          color: _selectedAmount == _investmentOptions[index]
-                              ? Colors.white
-                              : Colors.black,
+                        child: Center(
+                          child: Text(
+                            currencyFormatter.format(
+                                nominal), // Menampilkan nominal dalam format rupiah
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.black, // Teks berubah warna
+                            ),
+                          ),
                         ),
                       ),
                     );
                   },
                 ),
+
                 SizedBox(height: 16),
                 // Tombol Unggah Bukti Transfer
                 MaterialButton(

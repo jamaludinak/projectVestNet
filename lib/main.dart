@@ -10,14 +10,10 @@ import 'utils/Constant.dart';
 AppStore appStore = AppStore();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await initialize(aLocaleLanguageList: languageList());
-
   appStore.toggleDarkMode(value: getBoolAsync('isDarkModeOnPref'));
-
   defaultRadius = 10;
   defaultToastGravityGlobal = ToastGravity.BOTTOM;
-
   runApp(MyApp());
 }
 

@@ -86,6 +86,9 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
                 var createdAt = DateFormat('dd MMM yyyy')
                     .format(DateTime.parse(mutasi['created_at']));
 
+                // Tentukan apakah ini pemasukan atau pengeluaran
+                var isPemasukan = kredit > 0;
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                       vertical: 8.0, horizontal: 16.0),
@@ -103,10 +106,13 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
                     ),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.blue,
+                        backgroundColor:
+                            isPemasukan ? Colors.green : Colors.red,
                         radius: 25,
                         child: Icon(
-                          Icons.account_balance_wallet,
+                          isPemasukan
+                              ? Icons.arrow_downward // Panah ke bawah (pemasukan)
+                              : Icons.arrow_upward,  // Panah ke atas (pengeluaran)
                           color: Colors.white,
                           size: 28,
                         ),
@@ -137,11 +143,11 @@ class _RiwayatMutasiScreenState extends State<RiwayatMutasiScreen> {
                         ],
                       ),
                       trailing: Text(
-                        kredit > 0
+                        isPemasukan
                             ? currencyFormatter.format(kredit)
                             : currencyFormatter.format(debit),
                         style: TextStyle(
-                          color: kredit > 0 ? Colors.green : Colors.red,
+                          color: isPemasukan ? Colors.green : Colors.red,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
