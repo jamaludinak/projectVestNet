@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nb_utils/nb_utils.dart';
-import '../utils/Colors.dart';
+import 'package:vestnett/screen/DashBoardScreen.dart';
 import 'LoginScreen.dart';
+import '../services/auth_service.dart'; // AuthService untuk memeriksa login
+import '../utils/Colors.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -17,11 +19,26 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> init() async {
+    // Tambahkan delay selama 3 detik untuk splash screen
     await Future.delayed(Duration(seconds: 3));
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-    );
+
+    // Periksa apakah pengguna sudah login atau belum
+    AuthService authService = AuthService();
+    String? token = await authService.getToken();
+
+    // Jika token ada, pengguna sudah login dan diarahkan ke halaman utama
+    if (token != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => DashBoardScreen()), // Halaman utama
+      );
+    } else {
+      // Jika token tidak ada, diarahkan ke halaman login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    }
   }
 
   @override
@@ -42,6 +59,7 @@ class SplashScreenState extends State<SplashScreen> {
         backgroundColor: Color(0xFFFFFFFF),
         body: Stack(
           children: [
+            // Lingkaran di bagian atas
             Positioned(
               top: -size.width * 0.35,
               left: -size.width * 0.35,
@@ -54,6 +72,7 @@ class SplashScreenState extends State<SplashScreen> {
                 ),
               ),
             ),
+            // Lingkaran di bagian bawah
             Positioned(
               bottom: -size.width * 0.35,
               right: -size.width * 0.35,
@@ -66,11 +85,11 @@ class SplashScreenState extends State<SplashScreen> {
                 ),
               ),
             ),
+            // Logo di tengah
             Center(
               child: Image.asset(
                 'images/VestNetLogo1NoBackground.png',
-                width:
-                    size.width * 0.8, // Set logo width to half of screen width
+                width: size.width * 0.8, // Set logo width
               ),
             ),
           ],
