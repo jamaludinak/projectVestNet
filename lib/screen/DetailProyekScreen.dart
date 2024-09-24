@@ -152,12 +152,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Min Investasi',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w900,
                                 color: grey)),
                         Text('Terkumpul',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w900,
                                 color: grey)),
                       ],
@@ -167,10 +167,10 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text(currencyFormatter.format(proyek.minInvest),
                             style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w900)),
+                                fontSize: 13, fontWeight: FontWeight.w900)),
                         Text(currencyFormatter.format(proyek.danaTerkumpul),
                             style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w900)),
+                                fontSize: 13, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     16.height,
@@ -179,12 +179,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Dana yang dibutuhkan',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(currencyFormatter.format(proyek.targetInvest),
                             style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w900)),
+                                fontSize: 13, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     8.height,
@@ -193,12 +193,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Status',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(proyek.status,
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w900,
                                 color: GreenNormalColor)),
                       ],
@@ -209,12 +209,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Estimasi ROI per Tahun',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text('${proyek.roi} %',
                             style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w900)),
+                                fontSize: 13, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     8.height,
@@ -223,12 +223,12 @@ class DetailProyekState extends State<DetailProyek> {
                       children: [
                         Text('Grade',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(proyek.grade,
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w900,
                                 color: GreenBoldColor)),
                       ],
@@ -240,7 +240,7 @@ class DetailProyekState extends State<DetailProyek> {
                         Text(
                           'BEP',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 13,
                             color: grey,
                             fontWeight: FontWeight.w900,
                           ),
@@ -248,7 +248,7 @@ class DetailProyekState extends State<DetailProyek> {
                         Text(
                           '${proyek.bep}',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: FontWeight.w900,
                             color: GreenBoldColor,
                           ),
@@ -287,7 +287,7 @@ class DetailProyekState extends State<DetailProyek> {
                               child: Text(
                                 "Mulai Investasi Sekarang!",
                                 style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w800,
                                     fontStyle: FontStyle.normal),
                               ),
@@ -299,7 +299,7 @@ class DetailProyekState extends State<DetailProyek> {
                           return Center(
                               child: Text(
                                   'Anda sudah berinvestasi di proyek ini',
-                                  style: boldTextStyle(size: 16)));
+                                  style: boldTextStyle(size: 14)));
                         }
                       },
                     ),

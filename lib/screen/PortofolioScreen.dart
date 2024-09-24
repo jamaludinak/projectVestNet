@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
-import '../component/portofolio/CardInvestasi.dart'; // Pastikan ini benar
+import '../component/portofolio/CardInvestasi.dart';
 import '../utils/Constant.dart';
 import 'DetailProyekInvestScreen.dart';
 import 'package:http/http.dart' as http;
@@ -93,7 +93,7 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  // Hanya tampilkan judul dan gambar HG4 jika bukan investor
+                  
                   if (!isInvestor)
                     Center(
                       child: Column(

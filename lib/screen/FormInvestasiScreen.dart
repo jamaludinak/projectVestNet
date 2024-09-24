@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 
 class FormInvestasi extends StatefulWidget {
   final int projectId;
@@ -27,13 +28,21 @@ class FormInvestasiState extends State<FormInvestasi> {
   bool agreeToTerms = false;
   File? _selectedFile;
 
+  final MoneyMaskedTextController _manualAmountController =
+      MoneyMaskedTextController(
+    thousandSeparator: '.',
+    decimalSeparator: '',
+    leftSymbol: 'Rp ',
+    precision: 0,
+  );
+
   final List<int> _investmentOptions = [
     2000000,
     3000000,
     5000000,
+    7500000,
     10000000,
-    15000000,
-    20000000
+    20000000,
   ];
 
   @override
@@ -116,7 +125,7 @@ class FormInvestasiState extends State<FormInvestasi> {
           'POST', Uri.parse('${baseUrl}api/investInProject'));
       request.headers['Authorization'] = 'Bearer $token';
       request.fields['id_proyek'] = widget.projectId.toString();
-      request.fields['total_investasi'] = _selectedAmount.toString();
+      request.fields['total_investasi'] = _manualAmountController.numberValue.toString(); // Data dari TextField manual
 
       // Upload bukti transfer
       request.files.add(await http.MultipartFile.fromPath(
@@ -305,12 +314,14 @@ class FormInvestasiState extends State<FormInvestasi> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Metode Pembayaran
-                // Bagian Metode Pembayaran (dengan row terpisah untuk ikon dan teks)
                 Text('Metode Pembayaran',
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black)),
+                SizedBox(height: 8),
+                // Display metode pembayaran
+                // ...
                 SizedBox(height: 8),
                 Column(
                   children: [
@@ -414,68 +425,69 @@ class FormInvestasiState extends State<FormInvestasi> {
                 ),
 
                 SizedBox(height: 16),
-                // Jumlah Investasi
-                // Bagian jumlah investasi
-                Text('Jumlah Investasi',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                // Pilihan Nominal Investasi
+                Text('Pilih Nominal Investasi',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 SizedBox(height: 8),
-                GridView.builder(
+                GridView.count(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio:
-                        2.5, // Menyusun grid dengan aspek rasio yang lebih proporsional
-                  ),
-                  itemCount: _investmentOptions.length,
-                  itemBuilder: (context, index) {
-                    int nominal = _investmentOptions[index];
-                    bool isSelected = _selectedAmount == nominal;
-
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedAmount =
-                              nominal; // Menyimpan nilai nominal yang dipilih
-                        });
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Colors.blue
-                              : Colors
-                                  .white, // Warna card berubah ketika dipilih
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.blue
-                                : Colors.grey, // Border berubah warna
-                            width: 2,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            currencyFormatter.format(
-                                nominal), // Menampilkan nominal dalam format rupiah
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? Colors.white
-                                  : Colors.black, // Teks berubah warna
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 2.5,
+                  children: _investmentOptions
+                      .map((nominal) => GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _manualAmountController
+                                    .updateValue(nominal.toDouble());
+                              });
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: _manualAmountController.numberValue ==
+                                        nominal.toDouble()
+                                    ? Colors.blue
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: _manualAmountController.numberValue ==
+                                          nominal.toDouble()
+                                      ? Colors.blue
+                                      : Colors.grey,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  currencyFormatter.format(nominal),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: _manualAmountController
+                                                .numberValue ==
+                                            nominal.toDouble()
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                          ))
+                      .toList(),
                 ),
-
                 SizedBox(height: 16),
-                // Tombol Unggah Bukti Transfer
+                // TextField untuk input manual nominal
+                TextField(
+                  controller: _manualAmountController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Masukkan nominal investasi',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 14),
                 MaterialButton(
                   onPressed: _pickFile,
                   color: PrimaryColor,

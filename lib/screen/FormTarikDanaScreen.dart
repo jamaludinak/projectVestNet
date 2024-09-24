@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
+import '../utils/Colors.dart';
 import '../utils/Constant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
@@ -15,6 +16,14 @@ class FormulirTarikDana extends StatefulWidget {
 
 class _FormulirTarikDanaState extends State<FormulirTarikDana> {
   final MoneyMaskedTextController _amountController = MoneyMaskedTextController(
+    thousandSeparator: '.',
+    decimalSeparator: '',
+    leftSymbol: 'Rp ',
+    precision: 0,
+  );
+
+  final MoneyMaskedTextController _manualAmountController =
+      MoneyMaskedTextController(
     thousandSeparator: '.',
     decimalSeparator: '',
     leftSymbol: 'Rp ',
@@ -69,7 +78,7 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
         },
         body: jsonEncode({
           'id_investasi': _selectedInvestasiId,
-          'jumlah': _amountController.numberValue,
+          'jumlah': _manualAmountController.numberValue, // Nominal dari textfield
         }),
       );
 
@@ -84,31 +93,21 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
     }
   }
 
-  String formatRupiah(num number) {
-    final formatCurrency =
-        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
-    return formatCurrency.format(number);
-  }
-
-  // Pop-up untuk konfirmasi sebelum pengiriman data
   void _showConfirmationPopup() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-                9), // Border radius sesuai dengan spesifikasi
+            borderRadius: BorderRadius.circular(9),
           ),
           child: Container(
-            width:
-                MediaQuery.of(context).size.width * 0.8, // Lebar 80% dari layar
+            width: MediaQuery.of(context).size.width * 0.8,
             padding: EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Teks konfirmasi
                 Text(
                   'Data yang Anda masukkan sudah benar?',
                   style: TextStyle(
@@ -118,22 +117,21 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 20),
-                // Tombol 'Benar'
                 Container(
-                  width: double.infinity, // Tombol memenuhi lebar container
+                  width: double.infinity,
                   height: 40,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(
-                      color: Color(0xFF4AA2D9), // Border biru
+                      color: Color(0xFF4AA2D9),
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop(); // Tutup dialog
-                      tarikSaldo(); // Lanjutkan pengiriman data
+                      Navigator.of(context).pop();
+                      tarikSaldo();
                     },
                     child: Text(
                       'Benar',
@@ -145,19 +143,17 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                     ),
                   ),
                 ),
-                SizedBox(height: 10), // Jarak antara tombol
-                // Tombol 'Cek Ulang'
+                SizedBox(height: 10),
                 Container(
-                  width: double.infinity, // Tombol memenuhi lebar container
+                  width: double.infinity,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Color(0xFFE2E2E2), // Warna abu-abu untuk Cek Ulang
+                    color: Color(0xFFE2E2E2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context)
-                          .pop(); // Tutup dialog tanpa melakukan apa pun
+                      Navigator.of(context).pop();
                     },
                     child: Text(
                       'Cek Ulang',
@@ -302,7 +298,7 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                                   ),
                                   SizedBox(height: 8),
                                   Text(
-                                    'Saldo: ${formatRupiah(item['saldo'])}',
+                                    'Saldo: ${_amountController.text}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: _selectedInvestasiId ==
@@ -337,6 +333,8 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                           onTap: () {
                             setState(() {
                               _amountController.updateValue(nominal.toDouble());
+                              _manualAmountController.updateValue(
+                                  nominal.toDouble());
                             });
                           },
                           child: Container(
@@ -356,7 +354,7 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                             ),
                             child: Center(
                               child: Text(
-                                formatRupiah(nominal),
+                                _amountController.text,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -370,6 +368,16 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                           ),
                         ))
                     .toList(),
+              ),
+              SizedBox(height: 14),
+              // TextField untuk input manual nominal
+              TextField(
+                controller: _manualAmountController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Masukkan nominal tarik dana',
+                  border: OutlineInputBorder(),
+                ),
               ),
               SizedBox(height: 14),
               buildTermsAndConditions(),
@@ -398,14 +406,14 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                 child: MaterialButton(
                   onPressed: () {
                     if (_selectedInvestasiId != null &&
-                        _amountController.numberValue > 0 &&
+                        _manualAmountController.numberValue > 0 &&
                         agreeToTerms) {
                       _showConfirmationPopup();
                     } else {
                       print('Form tidak valid');
                     }
                   },
-                  color: Theme.of(context).primaryColor,
+                  color: PrimaryColor,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0)),

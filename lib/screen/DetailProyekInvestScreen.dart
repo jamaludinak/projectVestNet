@@ -22,15 +22,16 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
   late Future<Map<String, dynamic>> projectDetails;
   List jurnalList = [];
   bool isLoadingJurnal = true;
+  int selectedIndex =
+      0; // 0 untuk semua, 1 untuk pemasukan, 2 untuk pengeluaran
 
   @override
   void initState() {
     super.initState();
     projectDetails = fetchProjectDetails(widget.projectId);
-    fetchJurnalData(); // Fetch Jurnal Investasi Data
+    fetchJurnalData();
   }
 
-  // Fungsi untuk mengambil detail proyek dari API
   Future<Map<String, dynamic>> fetchProjectDetails(int projectId) async {
     final AuthService _authService = AuthService();
     String? token = await _authService.getToken();
@@ -50,7 +51,6 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
     }
   }
 
-  // Fungsi untuk mengambil jurnal investasi dari API
   Future<void> fetchJurnalData() async {
     try {
       final AuthService _authService = AuthService();
@@ -68,7 +68,7 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
         final data = json.decode(response.body);
 
         setState(() {
-          jurnalList = data; // Tidak perlu mengurutkan lagi di sini
+          jurnalList = data;
           isLoadingJurnal = false;
         });
       } else {
@@ -80,6 +80,17 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
         isLoadingJurnal = false;
       });
     }
+  }
+
+  List filterJurnalList() {
+    if (selectedIndex == 1) {
+      return jurnalList.where((jurnal) => jurnal['pemasukan'] == true).toList();
+    } else if (selectedIndex == 2) {
+      return jurnalList
+          .where((jurnal) => jurnal['pemasukan'] == false)
+          .toList();
+    }
+    return jurnalList;
   }
 
   @override
@@ -120,7 +131,6 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
           } else {
             var project = snapshot.data!;
 
-            // Data dari API
             String projectName = project['projectName'];
             String location = project['location'];
             double totalInvestasi = double.parse(project['totalInvestasi']);
@@ -130,7 +140,6 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
             double presentasiSaham = project['presentasiSaham'];
             double pendapatanBulanan = project['pendapatanBulanan'];
 
-            // Mengubah format tanggal
             DateTime parsedDate = DateTime.parse(tanggalInvestasi);
             String formattedDate =
                 DateFormat('d MMMM yyyy', 'id').format(parsedDate);
@@ -142,7 +151,6 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Project Name
                     Text(
                       projectName,
                       style: TextStyle(
@@ -151,19 +159,15 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                         color: TextSecondaryColor,
                       ),
                       softWrap: true,
-                      maxLines: null, // Allow text to wrap
+                      maxLines: null,
                     ),
-                    SizedBox(height: 8), // Spacing after title
-
-                    // Project Image
+                    SizedBox(height: 8),
                     Container(
                       width: screenWidth,
                       height: imageHeight,
                       child: Image.asset("images/Card2.png", fit: BoxFit.cover),
                     ),
-                    SizedBox(height: 8), // Spacing after image
-
-                    // Desa dan Lokasi
+                    SizedBox(height: 8),
                     Text(
                       location,
                       style:
@@ -174,8 +178,6 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       thickness: 1,
                     ),
                     SizedBox(height: 8),
-
-                    // Total Investasi dan Tanggal Investasi
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -184,12 +186,12 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                           children: [
                             Text('Total Investasi',
                                 style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     color: grey,
                                     fontWeight: FontWeight.w900)),
                             Text(currencyFormatter.format(totalInvestasi),
                                 style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w900)),
+                                    fontSize: 14, fontWeight: FontWeight.w900)),
                           ],
                         ),
                         Column(
@@ -197,20 +199,17 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                           children: [
                             Text('Tanggal Investasi',
                                 style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     color: grey,
                                     fontWeight: FontWeight.w900)),
-                            Text(
-                                formattedDate, // Menggunakan tanggal yang sudah diformat
+                            Text(formattedDate,
                                 style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w900)),
+                                    fontSize: 14, fontWeight: FontWeight.w900)),
                           ],
                         ),
                       ],
                     ),
-                    SizedBox(height: 16), // Spacing after rows
-
-                    // Jumlah Pendukung
+                    SizedBox(height: 16),
                     Center(
                       child: Text(
                         '$jumlahPendukung orang sudah mendukung proyek ini',
@@ -225,57 +224,50 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       thickness: 1,
                     ),
                     SizedBox(height: 16),
-
-                    // Status
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Status',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(status,
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w900,
                                 color: GreenNormalColor)),
                       ],
                     ),
-                    SizedBox(height: 14), // Spacing
-
-                    // Presentasi Saham dan Total Bagi Hasil
+                    SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Presentasi Saham',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text('${presentasiSaham.toStringAsFixed(2)}%',
                             style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w900)),
+                                fontSize: 13, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     SizedBox(height: 8),
-                    // Pendapatan Bulanan
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Pendapatan Bulanan',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: grey,
                                 fontWeight: FontWeight.w900)),
                         Text(currencyFormatter.format(pendapatanBulanan),
                             style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w900)),
+                                fontSize: 13, fontWeight: FontWeight.w900)),
                       ],
                     ),
                     SizedBox(height: 24),
-
-                    // Bagian Riwayat Jurnal Investasi
                     Text(
                       'Riwayat Keuangan',
                       style: TextStyle(
@@ -288,6 +280,116 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                       color: Colors.black,
                       thickness: 1,
                     ),
+                    // Filter button
+                    Container(
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedIndex = 0;
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: selectedIndex == 0
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.blue.shade200,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Text(
+                                  "Semua",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: selectedIndex == 0
+                                        ? Colors.white
+                                        : Colors.grey,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedIndex = 1;
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: selectedIndex == 1
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.blue.shade200,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Text(
+                                  "Pemasukan",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: selectedIndex == 1
+                                        ? Colors.white
+                                        : Colors.grey,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedIndex = 2;
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: selectedIndex == 2
+                                      ? Colors.blue
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.blue.shade200,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Text(
+                                  "Pengeluaran",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: selectedIndex == 2
+                                        ? Colors.white
+                                        : Colors.grey,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     isLoadingJurnal
                         ? Center(child: CircularProgressIndicator())
                         : jurnalList.isEmpty
@@ -295,11 +397,10 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                             : ListView.builder(
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
-                                itemCount: jurnalList.length,
+                                itemCount: filterJurnalList().length,
                                 itemBuilder: (context, index) {
-                                  var jurnal = jurnalList[index];
+                                  var jurnal = filterJurnalList()[index];
 
-                                  // Get fields from jurnal
                                   var keterangan = jurnal['keterangan'];
                                   var nominal = double.tryParse(
                                           jurnal['nominal'].toString()) ??
@@ -316,6 +417,7 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 8.0, horizontal: 16.0),
                                     child: Container(
+                                      padding: EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(8),
@@ -328,63 +430,79 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                                           ),
                                         ],
                                       ),
-                                      child: ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor: pemasukan
-                                              ? Colors.green
-                                              : Colors.red,
-                                          radius: 25,
-                                          child: Icon(
-                                            pemasukan
-                                                ? Icons.arrow_downward
-                                                : Icons.arrow_upward,
-                                            color: Colors.white,
-                                            size: 28,
-                                          ),
-                                        ),
-                                        title: Text(
-                                          keterangan,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        subtitle: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              tanggal,
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            keterangan,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
                                             ),
-                                          ],
-                                        ),
-                                        trailing: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              currencyFormatter.format(nominal),
-                                              style: TextStyle(
-                                                color: pemasukan
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
+                                          ),
+                                          SizedBox(height: 8),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                pemasukan
+                                                    ? "Pemasukan"
+                                                    : "Pengeluaran",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: pemasukan
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                ),
                                               ),
+                                              Text(
+                                                currencyFormatter
+                                                    .format(nominal),
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: pemasukan
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 4),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Saldo Akhir",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                              Text(
+                                                currencyFormatter
+                                                    .format(saldoAkhir),
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            tanggal,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey,
                                             ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              'Saldo Akhir: ${currencyFormatter.format(saldoAkhir)}',
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.black),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   );
