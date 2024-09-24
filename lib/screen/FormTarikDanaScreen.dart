@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import '../utils/Colors.dart';
 import '../utils/Constant.dart';
@@ -15,24 +14,20 @@ class FormulirTarikDana extends StatefulWidget {
 }
 
 class _FormulirTarikDanaState extends State<FormulirTarikDana> {
-  final MoneyMaskedTextController _amountController = MoneyMaskedTextController(
-    thousandSeparator: '.',
-    decimalSeparator: '',
-    leftSymbol: 'Rp ',
-    precision: 0,
-  );
-
+  // Controller untuk input manual nominal dengan format xxx.xxx.xxx
   final MoneyMaskedTextController _manualAmountController =
       MoneyMaskedTextController(
-    thousandSeparator: '.',
-    decimalSeparator: '',
+    thousandSeparator: '.', // Format ribuan menjadi xxx.xxx.xxx
+    decimalSeparator: '', // Tidak ada desimal
     leftSymbol: 'Rp ',
-    precision: 0,
+    precision: 0, // Tidak ada angka desimal
   );
 
   bool agreeToTerms = false;
   List<dynamic> _saldoInvestasi = [];
   String? _selectedInvestasiId;
+  double? _selectedSaldo;
+  double? _selectedNominal;
 
   @override
   void initState() {
@@ -78,7 +73,8 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
         },
         body: jsonEncode({
           'id_investasi': _selectedInvestasiId,
-          'jumlah': _manualAmountController.numberValue, // Nominal dari textfield
+          'jumlah':
+              _manualAmountController.numberValue, // Nominal dari textfield
         }),
       );
 
@@ -258,11 +254,14 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                       itemCount: _saldoInvestasi.length,
                       itemBuilder: (context, index) {
                         var item = _saldoInvestasi[index];
+                        var saldo = item['saldo']; // Saldo dari API
                         return GestureDetector(
                           onTap: () {
                             setState(() {
                               _selectedInvestasiId =
                                   item['id_investasi'].toString();
+                              _selectedSaldo =
+                                  saldo; // Menyimpan saldo yang dipilih
                             });
                           },
                           child: Container(
@@ -298,7 +297,7 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                                   ),
                                   SizedBox(height: 8),
                                   Text(
-                                    'Saldo: ${_amountController.text}',
+                                    'Saldo: Rp ${saldo.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => '.')}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: _selectedInvestasiId ==
@@ -328,25 +327,24 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
                 childAspectRatio: 2.5,
-                children: [50000, 100000, 200000, 300000, 500000, 1000000]
+                children: [50000, 100000, 200000, 350000, 500000, 1000000]
                     .map((nominal) => GestureDetector(
                           onTap: () {
                             setState(() {
-                              _amountController.updateValue(nominal.toDouble());
-                              _manualAmountController.updateValue(
-                                  nominal.toDouble());
+                              _manualAmountController.updateValue(nominal
+                                  .toDouble()); // Mengatur nominal yang dipilih
+                              _selectedNominal = nominal
+                                  .toDouble(); // Menyimpan nominal yang dipilih
                             });
                           },
                           child: Container(
                             decoration: BoxDecoration(
-                              color: _amountController.numberValue ==
-                                      nominal.toDouble()
+                              color: _selectedNominal == nominal.toDouble()
                                   ? Colors.blue
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: _amountController.numberValue ==
-                                        nominal.toDouble()
+                                color: _selectedNominal == nominal.toDouble()
                                     ? Colors.blue
                                     : Colors.grey,
                                 width: 2,
@@ -354,12 +352,11 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                             ),
                             child: Center(
                               child: Text(
-                                _amountController.text,
+                                'Rp ${nominal.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => '.')}',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: _amountController.numberValue ==
-                                          nominal.toDouble()
+                                  color: _selectedNominal == nominal.toDouble()
                                       ? Colors.white
                                       : Colors.black,
                                 ),

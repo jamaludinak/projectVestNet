@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 import '../component/form/PengajuanInvest/dropdown.dart';
 import '../component/form/PengajuanInvest/field.dart';
-import '../component/form/PengajuanInvest/uploudButton.dart';
 import '../main.dart';
 import '../utils/Colors.dart';
 import '../utils/Constant.dart';
@@ -32,8 +31,8 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
 
   bool agreeToTerms = false;
   String dropdownValue2 = 'BCA';
-  XFile? _ktpFile;
-  XFile? _npwpFile;
+  File? _ktpFile;
+  File? _npwpFile;
 
   @override
   void initState() {
@@ -45,9 +44,53 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
     setStatusBarColor(Colors.transparent);
   }
 
-  @override
-  void setState(fn) {
-    if (mounted) super.setState(fn);
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _dateController.text =
+            picked.toIso8601String().substring(0, 10); // Format yyyy-MM-dd
+      });
+    }
+  }
+
+  Future<void> _pickKtpFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _ktpFile = File(result.files.single.path!);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tidak ada file KTP yang dipilih')),
+      );
+    }
+  }
+
+  Future<void> _pickNpwpFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _npwpFile = File(result.files.single.path!);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tidak ada file NPWP yang dipilih')),
+      );
+    }
   }
 
   Future<void> _submitForm() async {
@@ -55,7 +98,7 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
         agreeToTerms &&
         _ktpFile != null &&
         _npwpFile != null) {
-      _showConfirmationPopup(); // Tampilkan pop-up konfirmasi sebelum mengirim
+      _showConfirmationPopup();
     } else {
       if (!agreeToTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -69,7 +112,6 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
     }
   }
 
-  // Metode untuk mengirim data setelah konfirmasi benar
   Future<void> kirimPermintaan() async {
     try {
       String? token = await getToken();
@@ -121,25 +163,21 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
     }
   }
 
-  // Pop-up konfirmasi sebelum pengiriman
   void _showConfirmationPopup() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-                9), // Border radius sesuai dengan spesifikasi
+            borderRadius: BorderRadius.circular(9),
           ),
           child: Container(
-            width:
-                MediaQuery.of(context).size.width * 0.8, // Lebar 80% dari layar
+            width: MediaQuery.of(context).size.width * 0.8,
             padding: EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Teks konfirmasi
                 Text(
                   'Data yang Anda masukkan sudah benar?',
                   style: TextStyle(
@@ -149,22 +187,21 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 20),
-                // Tombol 'Benar'
                 Container(
-                  width: double.infinity, // Tombol memenuhi lebar container
+                  width: double.infinity,
                   height: 40,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(
-                      color: Color(0xFF4AA2D9), // Border biru
+                      color: Color(0xFF4AA2D9),
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop(); // Tutup dialog
-                      kirimPermintaan(); // Lanjutkan pengiriman data
+                      Navigator.of(context).pop();
+                      kirimPermintaan();
                     },
                     child: Text(
                       'Benar',
@@ -176,19 +213,17 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                     ),
                   ),
                 ),
-                SizedBox(height: 10), // Jarak antara tombol
-                // Tombol 'Cek Ulang'
+                SizedBox(height: 10),
                 Container(
-                  width: double.infinity, // Tombol memenuhi lebar container
+                  width: double.infinity,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Color(0xFFE2E2E2), // Warna abu-abu untuk Cek Ulang
+                    color: Color(0xFFE2E2E2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context)
-                          .pop(); // Tutup dialog tanpa melakukan apa pun
+                      Navigator.of(context).pop();
                     },
                     child: Text(
                       'Cek Ulang',
@@ -208,7 +243,6 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
     );
   }
 
-  // Pop-up sukses setelah pengiriman berhasil
   void _showSuccessPopup() {
     showDialog(
       context: context,
@@ -265,32 +299,6 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
     );
   }
 
-  Future<void> _pickKtpFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'png', 'jpeg'],
-    );
-
-    if (result != null) {
-      setState(() {
-        _ktpFile = XFile(result.files.single.path!);
-      });
-    }
-  }
-
-  Future<void> _pickNpwpFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'png', 'jpeg'],
-    );
-
-    if (result != null) {
-      setState(() {
-        _npwpFile = XFile(result.files.single.path!);
-      });
-    }
-  }
-
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
@@ -300,8 +308,7 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        FocusScope.of(context)
-            .unfocus(); // Menutup keyboard dan menghapus fokus dari semua field
+        FocusScope.of(context).unfocus();
       },
       child: Scaffold(
         appBar: AppBar(
@@ -336,10 +343,33 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                   label: 'Tempat Lahir',
                   hintText: 'Masukkan tempat lahir Anda',
                 ),
-                TextFormFieldComponent(
-                  controller: _dateController,
-                  label: 'Tanggal Lahir',
-                  hintText: 'Masukkan tanggal lahir Anda',
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Label manual untuk Tanggal Lahir
+                    Text(
+                      'Tanggal Lahir',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 4),
+                    // TextFormField untuk memilih tanggal
+                    TextFormField(
+                      controller: _dateController,
+                      readOnly:
+                          true, // Tidak bisa diinput manual, hanya bisa memilih tanggal
+                      decoration: InputDecoration(
+                        hintText: 'Masukkan tanggal lahir Anda',
+                        suffixIcon:
+                            Icon(Icons.calendar_today, color: Colors.grey),
+                        border: OutlineInputBorder(),
+                      ),
+                      style: TextStyle(fontSize: 14),
+                      onTap: () => _selectDate(
+                          context), // Buka date picker saat field diklik
+                    ),
+                    SizedBox(height: 14),
+                  ],
                 ),
                 TextFormFieldComponent(
                   controller: _phoneController,
@@ -383,18 +413,58 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                 TextFormFieldComponent(
                   controller: _addressController,
                   label: 'Alamat',
-                  hintText: 'Masukkan alamat Anda', // Tambahkan field alamat
+                  hintText: 'Masukkan alamat Anda',
                 ),
-                UploadButtonComponent(
-                  label: "Upload Foto KTP *jpg",
-                  file: _ktpFile,
-                  onTap: _pickKtpFile,
+                // Upload file KTP
+                MaterialButton(
+                  onPressed: _pickKtpFile,
+                  color: PrimaryColor,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0)),
+                  child: Row(
+                    children: [
+                      Icon(Icons.upload_file, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        _ktpFile != null
+                            ? 'KTP dipilih: ${_ktpFile!.path.split('/').last}'
+                            : "Upload KTP *jpg, png, pdf",
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            fontStyle: FontStyle.normal),
+                      ),
+                    ],
+                  ),
+                  textColor: Color(0xffffffff),
+                  height: 40,
                 ),
                 SizedBox(height: 8),
-                UploadButtonComponent(
-                  label: "Upload Foto NPWP *jpg",
-                  file: _npwpFile,
-                  onTap: _pickNpwpFile,
+                // Upload file NPWP
+                MaterialButton(
+                  onPressed: _pickNpwpFile,
+                  color: PrimaryColor,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0)),
+                  child: Row(
+                    children: [
+                      Icon(Icons.upload_file, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        _npwpFile != null
+                            ? 'NPWP dipilih: ${_npwpFile!.path.split('/').last}'
+                            : "Upload NPWP *jpg, png, pdf",
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            fontStyle: FontStyle.normal),
+                      ),
+                    ],
+                  ),
+                  textColor: Color(0xffffffff),
+                  height: 40,
                 ),
                 SizedBox(height: 14),
                 buildTermsAndConditions(),

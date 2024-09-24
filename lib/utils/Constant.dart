@@ -7,7 +7,7 @@ import '../model/Proyek/ProyekModel.dart';
 import '../services/auth_service.dart';
 import 'Colors.dart';
 
-const String baseUrl = "http://localhost:8000/";
+const String baseUrl = "http://vestnet.id/";
 
 class TermsAndConditionsItem extends StatelessWidget {
   final int number;
@@ -80,8 +80,7 @@ Widget ImageFromApi(String imageUrl) {
         height: screenWidth * 0.3 * 0.5,
         child: Image.network(
           imageUrl,
-          fit: BoxFit
-              .contain,
+          fit: BoxFit.contain,
         ),
       );
     },
@@ -92,6 +91,7 @@ const List<String> provinsiList = ['Jawa Tengah'];
 const Map<String, List<String>> kabupatenList = {
   'Jawa Tengah': ['Banyumas', 'Purbalingga', 'Cilacap']
 };
+
 const Map<String, List<String>> kecamatanList = {
   'Banyumas': [
     'Ajibarang',
@@ -228,6 +228,9 @@ class _ProjectCardState extends State<ProjectCard> {
           final currencyFormatter = NumberFormat.currency(
               locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
+          // Tambahkan path URL lengkap ke foto banner
+          String bannerUrl = '${baseUrl}${proyek.fotoBanner}';
+          print(bannerUrl);
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: EdgeInsets.all(8),
@@ -252,12 +255,24 @@ class _ProjectCardState extends State<ProjectCard> {
                     aspectRatio: 3 / 2,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset(
-                        "images/cp_card1.png",
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.broken_image,
-                              size: 50, color: Colors.grey);
+                      child: Image.network(
+                        bannerUrl,
+                        loadingBuilder: (BuildContext context, Widget child,
+                            ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        (loadingProgress.expectedTotalBytes ??
+                                            1)
+                                    : null,
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),
@@ -441,7 +456,9 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
           return Center(child: Text('No project data available'));
         } else {
           var project = snapshot.data!;
-
+          String banner = project['image'];
+          String bannerUrl = '${baseUrl}$banner';
+            print(bannerUrl);
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: EdgeInsets.all(8),
@@ -466,12 +483,24 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                     aspectRatio: 3 / 2,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset(
-                        "images/card2.png",
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.broken_image,
-                              size: 50, color: Colors.grey);
+                      child: Image.network(
+                        bannerUrl,
+                        loadingBuilder: (BuildContext context, Widget child,
+                            ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        (loadingProgress.expectedTotalBytes ??
+                                            1)
+                                    : null,
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),

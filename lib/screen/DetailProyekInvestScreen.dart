@@ -139,10 +139,12 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
             String status = project['status'];
             double presentasiSaham = project['presentasiSaham'];
             double pendapatanBulanan = project['pendapatanBulanan'];
-
+            String banner = project['image'];
             DateTime parsedDate = DateTime.parse(tanggalInvestasi);
             String formattedDate =
                 DateFormat('d MMMM yyyy', 'id').format(parsedDate);
+            String bannerUrl = '${baseUrl}$banner';
+            print(bannerUrl);
 
             return SingleChildScrollView(
               child: Container(
@@ -165,7 +167,26 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
                     Container(
                       width: screenWidth,
                       height: imageHeight,
-                      child: Image.asset("images/Card2.png", fit: BoxFit.cover),
+                      child: Image.network(
+                        bannerUrl,
+                        loadingBuilder: (BuildContext context, Widget child,
+                            ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        (loadingProgress.expectedTotalBytes ??
+                                            1)
+                                    : null,
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ),
                     SizedBox(height: 8),
                     Text(

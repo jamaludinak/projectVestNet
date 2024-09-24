@@ -27,8 +27,7 @@ class DetailProyekState extends State<DetailProyek> {
   void initState() {
     super.initState();
     projectDetails = fetchProjectDetails(widget.projectId);
-    hasInvested = checkIfUserHasInvested(
-        widget.projectId);
+    hasInvested = checkIfUserHasInvested(widget.projectId);
   }
 
   Future<ProyekModel> fetchProjectDetails(int projectId) async {
@@ -111,7 +110,8 @@ class DetailProyekState extends State<DetailProyek> {
             return Center(child: Text('No project data available'));
           } else {
             var proyek = snapshot.data!;
-
+            String bannerUrl = '${baseUrl}${proyek.fotoBanner}';
+            print(bannerUrl);
             return SingleChildScrollView(
               child: Container(
                 margin: EdgeInsets.all(16),
@@ -133,8 +133,26 @@ class DetailProyekState extends State<DetailProyek> {
                     Container(
                       width: screenWidth,
                       height: imageHeight,
-                      child:
-                          Image.asset("images/cp_card1.png", fit: BoxFit.cover),
+                      child: Image.network(
+                        bannerUrl,
+                        loadingBuilder: (BuildContext context, Widget child,
+                            ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        (loadingProgress.expectedTotalBytes ??
+                                            1)
+                                    : null,
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ),
                     SizedBox(height: 8),
                     Text(
@@ -255,7 +273,6 @@ class DetailProyekState extends State<DetailProyek> {
                         ),
                       ],
                     ),
-                    
                     FutureBuilder<bool>(
                       future: hasInvested,
                       builder: (context, snapshot) {
@@ -265,8 +282,19 @@ class DetailProyekState extends State<DetailProyek> {
                         } else if (snapshot.hasError) {
                           return Center(
                               child: Text('Error checking investment status'));
+                        } else if (proyek.danaTerkumpul >=
+                            proyek.targetInvest) {
+                          return Center(
+                            child: Text(
+                              'Proyek Sudah Terdanai',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.green,
+                              ),
+                            ),
+                          );
                         } else if (snapshot.hasData && !snapshot.data!) {
-                          
                           return Center(
                             child: MaterialButton(
                               onPressed: () {
@@ -298,7 +326,7 @@ class DetailProyekState extends State<DetailProyek> {
                         } else {
                           return Center(
                               child: Text(
-                                  'Anda sudah berinvestasi di proyek ini',
+                                  '\nAnda sudah berinvestasi di proyek ini',
                                   style: boldTextStyle(size: 14)));
                         }
                       },

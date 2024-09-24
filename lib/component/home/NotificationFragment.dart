@@ -92,22 +92,51 @@ class _NotificationFragmentState extends State<NotificationFragment> {
                         ? 'investasi'
                         : 'proyek';
 
-                    return ListTile(
-                      leading: Icon(
-                        Icons.balance, // Menggunakan ikon balance
-                        color: notificationType == 'investasi'
-                            ? Colors.green
-                            : Colors.blue,
-                      ),
-                      title: Text(notificationType == 'investasi'
-                          ? 'Investasi Anda Berhasil'
-                          : 'Proyek Baru Tersedia'),
-                      subtitle: Text(notificationType == 'investasi'
-                          ? 'Investasi di proyek ${notification['desa']} telah berhasil.'
-                          : 'Proyek baru tersedia di desa ${notification['desa']}.'),
-                      trailing: Text(
-                        notificationDate,
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: Offset(0, 3), // changes position of shadow
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(16),
+                          leading: Icon(
+                            Icons.notifications, // Ganti ikon sesuai keperluan
+                            color: notificationType == 'investasi'
+                                ? Colors.green
+                                : Colors.blue,
+                            size: 40, // Memperbesar ukuran ikon
+                          ),
+                          title: Text(
+                            notificationType == 'investasi'
+                                ? 'Investasi Anda Berhasil'
+                                : 'Proyek Baru Tersedia',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold, // Menebalkan judul notifikasi
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Text(
+                            notificationType == 'investasi'
+                                ? 'Investasi di proyek ${notification['desa']} telah berhasil.'
+                                : 'Proyek baru tersedia di desa ${notification['desa']}.',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          trailing: Text(
+                            notificationDate,
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ),
                       ),
                     );
                   },
