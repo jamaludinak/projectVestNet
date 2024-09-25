@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nb_utils/nb_utils.dart';
 import '../main.dart';
 import '../utils/Colors.dart';
@@ -83,10 +86,33 @@ class FormInvestasiState extends State<FormInvestasi> {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchRekeningData() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('${baseUrl}api/getRekening'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body)['data'];
+      return data.map((rekening) {
+        return {
+          'nama': rekening['nama'],
+          'bank': rekening['bank'],
+          'no_rekening': rekening['no_rekening'],
+        };
+      }).toList();
+    } else {
+      throw Exception('Gagal mengambil data rekening');
+    }
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate() &&
         agreeToTerms &&
-        _selectedAmount != null &&
         _selectedFile != null) {
       // Tampilkan pop-up konfirmasi sebelum pengiriman data
       _showConfirmationPopup();
@@ -96,17 +122,19 @@ class FormInvestasiState extends State<FormInvestasi> {
           SnackBar(content: Text('Anda harus menyetujui syarat dan ketentuan')),
         );
       }
-      if (_selectedAmount == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Anda harus memilih jumlah investasi')),
-        );
-      }
       if (_selectedFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Anda harus mengunggah bukti transaksi')),
         );
       }
     }
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Nomor rekening disalin: $text')),
+    );
   }
 
   void tarikSaldo() async {
@@ -125,7 +153,8 @@ class FormInvestasiState extends State<FormInvestasi> {
           'POST', Uri.parse('${baseUrl}api/investInProject'));
       request.headers['Authorization'] = 'Bearer $token';
       request.fields['id_proyek'] = widget.projectId.toString();
-      request.fields['total_investasi'] = _manualAmountController.numberValue.toString(); // Data dari TextField manual
+      request.fields['total_investasi'] = _manualAmountController.numberValue
+          .toString(); // Data dari TextField manual
 
       // Upload bukti transfer
       request.files.add(await http.MultipartFile.fromPath(
@@ -321,113 +350,198 @@ class FormInvestasiState extends State<FormInvestasi> {
                         color: Colors.black)),
                 SizedBox(height: 8),
                 // Display metode pembayaran
-                // ...
-                SizedBox(height: 8),
-                Column(
-                  children: [
-                    {
-                      'title1': 'MANDIRI',
-                      'subtitle1': '1340027539658',
-                      'subtitle2': 'Toni Anwar',
-                      'icon': Icons.account_balance,
-                    },
-                    {
-                      'title1': 'TUNAI',
-                      'subtitle1': 'Hubungi Kami',
-                      'subtitle2': 'Untuk Info Detail',
-                      'icon': Icons.attach_money,
-                    },
-                  ].map((Map<String, Object> paymentMethod) {
-                    String title1 = paymentMethod['title1'] as String;
-                    String subtitle1 = paymentMethod['subtitle1'] as String;
-                    String subtitle2 = paymentMethod['subtitle2'] as String;
-                    IconData icon = paymentMethod['icon'] as IconData;
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 6,
-                              spreadRadius: 2,
+                // Tampilkan data rekening yang diambil dari API
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: fetchRekeningData(), // Fungsi untuk mengambil data rekening dari API
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Gagal memuat data rekening'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('Tidak ada data rekening'));
+                  } else {
+                    return Column(
+                      children: snapshot.data!.map((rekening) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 6,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 1,
+                              ),
                             ),
-                          ],
-                          border: Border.all(
-                            color: Colors.grey,
-                            width: 1,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 12.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Flexible(
-                                flex: 1,
-                                child: Container(
-                                  height: 64, // Tinggi kustom untuk ikon
-                                  width: 64, // Lebar kustom untuk ikon
-                                  child: Icon(
-                                    icon,
-                                    color: Colors.blue,
-                                    size: 72,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0, vertical: 12.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Flexible(
+                                    flex: 1,
+                                    child: Container(
+                                      height: 64,
+                                      width: 64,
+                                      child: Icon(
+                                        Icons.account_balance,
+                                        color: Colors.blue,
+                                        size: 72,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                              SizedBox(width: 16), // Jarak antara ikon dan teks
-                              Flexible(
-                                flex:
-                                    3, // Memberikan ruang lebih besar untuk teks
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      title1,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black, // Warna teks hitam
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      subtitle1,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[700],
-                                      ),
-                                    ),
-                                    if (subtitle2.isNotEmpty) ...[
-                                      SizedBox(
-                                          height: 4), // Jarak antar subtitle
-                                      Text(
-                                        subtitle2,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey[700],
+                                  SizedBox(width: 16),
+                                  Flexible(
+                                    flex: 3,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          rekening['bank'],
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          'Atas Nama: ${rekening['nama']}',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                'No Rek: ${rekening['no_rekening']}',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.copy, color: Colors.blue),
+                                              onPressed: () {
+                                                _copyToClipboard(rekening['no_rekening']);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
+              ),
+
+              SizedBox(height: 16),
+
+              // Kolom khusus untuk metode pembayaran TUNAI
+              Text('Metode Pembayaran Tunai',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black)),
+              SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 6,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1,
+                  ),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Flexible(
+                        flex: 1,
+                        child: Container(
+                          height: 64, // Tinggi kustom untuk ikon
+                          width: 64, // Lebar kustom untuk ikon
+                          child: Icon(
+                            Icons.attach_money,
+                            color: Colors.green,
+                            size: 72,
                           ),
                         ),
                       ),
-                    );
-                  }).toList(),
+                      SizedBox(width: 16), // Jarak antara ikon dan teks
+                      Flexible(
+                        flex: 3, // Memberikan ruang lebih besar untuk teks
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pembayaran Tunai',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Hubungi Kami',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Untuk Info Detail',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              ),
+
+              SizedBox(height: 16),
 
                 SizedBox(height: 16),
-                // Pilihan Nominal Investasi
                 Text('Pilih Nominal Investasi',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 SizedBox(height: 8),
                 GridView.count(
                   shrinkWrap: true,
@@ -465,11 +579,11 @@ class FormInvestasiState extends State<FormInvestasi> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: _manualAmountController
-                                                .numberValue ==
-                                            nominal.toDouble()
-                                        ? Colors.white
-                                        : Colors.black,
+                                    color:
+                                        _manualAmountController.numberValue ==
+                                                nominal.toDouble()
+                                            ? Colors.white
+                                            : Colors.black,
                                   ),
                                 ),
                               ),
