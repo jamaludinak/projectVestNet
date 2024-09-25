@@ -9,6 +9,7 @@ import '../utils/Colors.dart';
 import '../utils/Constant.dart';
 import 'FormInvestasiScreen.dart';
 import '../model/Proyek/ProyekModel.dart';
+import 'FormPengajuanInvestasiScreen.dart';
 
 class DetailProyek extends StatefulWidget {
   final int projectId;
@@ -21,7 +22,7 @@ class DetailProyek extends StatefulWidget {
 
 class DetailProyekState extends State<DetailProyek> {
   late Future<ProyekModel> projectDetails;
-  late Future<bool> hasInvested;
+  late Future<Map<String, dynamic>> hasInvested;
 
   @override
   void initState() {
@@ -41,7 +42,7 @@ class DetailProyekState extends State<DetailProyek> {
     }
   }
 
-  Future<bool> checkIfUserHasInvested(int projectId) async {
+  Future<Map<String, dynamic>> checkIfUserHasInvested(int projectId) async {
     final AuthService _authService = AuthService();
     String? token = await _authService.getToken();
 
@@ -56,7 +57,10 @@ class DetailProyekState extends State<DetailProyek> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return data['invested'];
+      return {
+        'invested': data['invested'],
+        'is_verified': data['is_verified'],
+      };
     } else {
       throw Exception('Failed to check investment status');
     }
@@ -273,7 +277,7 @@ class DetailProyekState extends State<DetailProyek> {
                         ),
                       ],
                     ),
-                    FutureBuilder<bool>(
+                    FutureBuilder<Map<String, dynamic>>(
                       future: hasInvested,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -294,7 +298,38 @@ class DetailProyekState extends State<DetailProyek> {
                               ),
                             ),
                           );
-                        } else if (snapshot.hasData && !snapshot.data!) {
+                        } else if (snapshot.hasData &&
+                            snapshot.data!['is_verified'] == 0) {
+                          // Jika pengguna belum terverifikasi, arahkan ke halaman pengajuan investasi
+                          return Center(
+                            child: MaterialButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        FormPengajuanInvestasi(), // Arahkan ke halaman pengajuan
+                                  ),
+                                );
+                              },
+                              color: Colors.orange,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0)),
+                              child: Text(
+                                "Ajukan Verifikasi untuk Mulai Investasi",
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    fontStyle: FontStyle.normal),
+                              ),
+                              textColor: Color(0xffffffff),
+                              height: 30,
+                            ),
+                          );
+                        } else if (snapshot.hasData &&
+                            !snapshot.data!['invested']) {
+                          // Jika pengguna belum berinvestasi dan sudah terverifikasi
                           return Center(
                             child: MaterialButton(
                               onPressed: () {
@@ -324,10 +359,13 @@ class DetailProyekState extends State<DetailProyek> {
                             ),
                           );
                         } else {
+                          // Jika pengguna sudah berinvestasi
                           return Center(
-                              child: Text(
-                                  '\nAnda sudah berinvestasi di proyek ini',
-                                  style: boldTextStyle(size: 14)));
+                            child: Text(
+                              '\nAnda sudah berinvestasi di proyek ini',
+                              style: boldTextStyle(size: 14),
+                            ),
+                          );
                         }
                       },
                     ),

@@ -62,7 +62,7 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
         setState(() {
           paidBills = paid;
           unpaidBills = unpaid;
-          isLoading = false; // Selesai loading
+          isLoading = false;
         });
       } else {
         print("Failed to load bill history");

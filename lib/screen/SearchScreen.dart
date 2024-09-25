@@ -146,27 +146,55 @@ class SearchScreenState extends State<SearchScreen> {
                 children: [
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      controller: searchController,
-                      onChanged: (value) {
-                        if (value.isNotEmpty) {
-                          // Panggil pencarian saat pengguna mengetik
-                          searchProjects(value);
-                        } else {
-                          // Jika input kosong, reset dan tampilkan semua proyek
-                          fetchProjects();
-                        }
-                      },
-                      textAlign: TextAlign.left,
-                      maxLines: 1,
-                      style: primaryTextStyle(size: 16),
-                      decoration: CustomInputDecoration.getDecoration(
-                              hintText: "Cari Proyek Investasi")
-                          .copyWith(
-                        prefixIcon: Icon(Icons.search_sharp),
-                        filled: true,
-                        fillColor: Color(0xFFF2F2F2),
-                      ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: searchController,
+                            textInputAction: TextInputAction.search,
+                            onSubmitted: (value) {
+                              if (value.isNotEmpty) {
+                                searchProjects(
+                                    value); // Panggil fungsi pencarian saat tekan Enter
+                              } else {
+                                fetchProjects(); // Jika input kosong, reset dan tampilkan semua proyek
+                              }
+                            },
+                            textAlign: TextAlign.left,
+                            maxLines: 1,
+                            style: primaryTextStyle(size: 16),
+                            decoration: CustomInputDecoration.getDecoration(
+                              hintText: "Cari Proyek Investasi",
+                            ).copyWith(
+                              filled: true,
+                              fillColor: Color(0xFFF2F2F2),
+                              prefixIcon: Icon(Icons.search_sharp),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                            width:
+                                8), // Memberi sedikit jarak antara text field dan tombol
+                        ElevatedButton(
+                          onPressed: () {
+                            if (searchController.text.isNotEmpty) {
+                              searchProjects(searchController
+                                  .text); // Panggil fungsi pencarian saat tombol ditekan
+                            } else {
+                              fetchProjects(); // Reset jika input kosong
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 16), backgroundColor: PrimaryColor, // Warna tombol
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Icon(Icons.search,
+                              color: Colors.white), // Ikon tombol search
+                        ),
+                      ],
                     ),
                   ),
                   8.height,
@@ -175,7 +203,7 @@ class SearchScreenState extends State<SearchScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
-                      children: ['Banyumas', 'Purbalingga', 'Cilacap']
+                      children: ['Banyumas', 'Purbalingga', 'Cilacap', 'Kebumen']
                           .map((kabupaten) {
                         bool isActive = selectedKabupaten == kabupaten;
                         return Padding(

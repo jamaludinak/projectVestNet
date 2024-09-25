@@ -374,11 +374,21 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                   hintText: 'Masukkan nomor telepon',
                   keyboardType: TextInputType.number,
                 ),
-                TextFormFieldComponent(
+                TextFormField(
                   controller: _nikController,
-                  label: 'NIK',
-                  hintText: 'Masukkan NIK',
                   keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'NIK harus diisi';
+                    }
+                    if (value.length != 16) {
+                      return 'NIK harus terdiri dari 16 digit';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Masukkan NIK',
+                  ),
                 ),
                 TextFormFieldComponent(
                   controller: _npwpController,
