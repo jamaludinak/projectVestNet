@@ -7,7 +7,7 @@ import '../model/Proyek/ProyekModel.dart';
 import '../services/auth_service.dart';
 import 'Colors.dart';
 
-const String baseUrl = "http://vestnet.id/";
+const String baseUrl = "https://vestnet.id/";
 
 class TermsAndConditionsItem extends StatelessWidget {
   final int number;
@@ -457,7 +457,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
         } else {
           var project = snapshot.data!;
           String banner = project['image'];
-          String bannerUrl = '${baseUrl}$banner';
+          String bannerUrl = '${baseUrl}/storage/$banner';
             print(bannerUrl);
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -521,7 +521,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 4),
 
                       // Total Investasi dan Nilainya dalam satu row
                       Row(
@@ -546,7 +546,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 4),
 
                       // Presentasi Saham dan Nilainya dalam satu row
                       Row(
@@ -570,7 +570,7 @@ class _ProjectCardInvestState extends State<ProjectCardInvest> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 4),
 
                       // Total Bagi Hasil dan Nilainya dalam satu row
                       Row(

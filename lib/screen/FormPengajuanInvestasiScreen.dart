@@ -25,8 +25,6 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
   final TextEditingController _nikController = TextEditingController();
   final TextEditingController _npwpController = TextEditingController();
   final TextEditingController _bankAccountController = TextEditingController();
-  final TextEditingController _accountHolderController =
-      TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
   bool agreeToTerms = false;
@@ -129,7 +127,6 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
       request.fields['npwp'] = _npwpController.text;
       request.fields['jenis_bank'] = dropdownValue2;
       request.fields['no_rekening'] = _bankAccountController.text;
-      request.fields['nama_pemilik_rekening'] = _accountHolderController.text;
       request.fields['no_hp'] = _phoneController.text;
       request.fields['alamat'] = _addressController.text;
 
@@ -404,11 +401,6 @@ class FormPengajuanInvestasiState extends State<FormPengajuanInvestasi> {
                   label: 'Nomor Rekening',
                   hintText: 'Masukkan nomor rekening Anda',
                   keyboardType: TextInputType.number,
-                ),
-                TextFormFieldComponent(
-                  controller: _accountHolderController,
-                  label: 'Nama Pemilik Rekening',
-                  hintText: 'Masukkan nama pemilik rekening',
                 ),
                 TextFormFieldComponent(
                   controller: _addressController,

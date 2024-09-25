@@ -143,7 +143,7 @@ class DetailProyekInvestState extends State<DetailProyekInvest> {
             DateTime parsedDate = DateTime.parse(tanggalInvestasi);
             String formattedDate =
                 DateFormat('d MMMM yyyy', 'id').format(parsedDate);
-            String bannerUrl = '${baseUrl}$banner';
+            String bannerUrl = '${baseUrl}/storage/$banner';
             print(bannerUrl);
 
             return SingleChildScrollView(

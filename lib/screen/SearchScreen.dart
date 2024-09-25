@@ -56,20 +56,37 @@ class SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void searchProjects(String query) {
+  void searchProjects(String query) async {
     setState(() {
-      if (query.isEmpty) {
-        filteredProjects =
-            allProjects; // Jika pencarian kosong, tampilkan semua proyek
-      } else {
-        filteredProjects = allProjects.where((project) {
-          final desaName = project.desa.toLowerCase() ?? '';
-          final input = query.toLowerCase();
-
-          return desaName.contains(input);
-        }).toList();
-      }
+      isLoading = true; // Mulai loading
+      filteredProjects = []; // Bersihkan data proyek sebelumnya
     });
+
+    try {
+      // Panggil API pencarian berdasarkan desa
+      final response =
+          await http.get(Uri.parse('${baseUrl}api/searchProyek?desa=$query'));
+
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body);
+        setState(() {
+          // Update proyek yang sudah di-filter
+          filteredProjects =
+              jsonResponse.map((data) => ProyekModel.fromJson(data)).toList();
+          isLoading = false; // Selesai loading
+        });
+      } else {
+        print('Failed to load projects');
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void filterByKabupaten(String kabupaten) async {
@@ -132,39 +149,23 @@ class SearchScreenState extends State<SearchScreen> {
                     child: TextField(
                       controller: searchController,
                       onChanged: (value) {
-                        if (value.isEmpty && selectedKabupaten.isEmpty) {
-                          // Jika pencarian kosong dan tidak ada filter kabupaten, tampilkan semua proyek
-                          setState(() {
-                            filteredProjects = allProjects;
-                          });
-                        }
-                      },
-                      onSubmitted: (value) async {
                         if (value.isNotEmpty) {
-                          // Panggil pencarian saat pengguna menekan enter
+                          // Panggil pencarian saat pengguna mengetik
                           searchProjects(value);
                         } else {
-                          // Jika pencarian kosong, fetch ulang daftar proyek
-                          await fetchProjects();
+                          // Jika input kosong, reset dan tampilkan semua proyek
+                          fetchProjects();
                         }
                       },
-
                       textAlign: TextAlign.left,
                       maxLines: 1,
-                      enabled: selectedKabupaten
-                          .isEmpty, // Nonaktifkan TextField jika filter kabupaten aktif
                       style: primaryTextStyle(size: 16),
                       decoration: CustomInputDecoration.getDecoration(
-                              hintText: selectedKabupaten.isNotEmpty
-                                  ? "Cari Proyek Investasi" // Berikan petunjuk jika tidak bisa di search
-                                  : "Cari Proyek Investasi")
+                              hintText: "Cari Proyek Investasi")
                           .copyWith(
                         prefixIcon: Icon(Icons.search_sharp),
                         filled: true,
-                        fillColor: selectedKabupaten.isNotEmpty
-                            ? Colors.grey
-                                .shade300 // Ubah warna jika TextField tidak aktif
-                            : Color(0xFFF2F2F2),
+                        fillColor: Color(0xFFF2F2F2),
                       ),
                     ),
                   ),

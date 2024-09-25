@@ -5,7 +5,6 @@ import 'dart:convert';
 import '../component/profile/EditAkunBank.dart';
 import '../component/profile/EditNoHP.dart';
 import '../component/profile/EditUsername.dart';
-import '../utils/Colors.dart';
 import '../utils/Constant.dart';
 import 'DetailAkunScreen.dart';
 
@@ -25,7 +24,6 @@ class _DetailAkunVerifState extends State<DetailAkunVerif> {
   String? npwp;
   String? namaBank;
   String? nomorRekening;
-  String? namaPemilikRekening;
 
   bool isLoading = true;
 
@@ -61,7 +59,6 @@ class _DetailAkunVerifState extends State<DetailAkunVerif> {
           npwp = data['npwp'];
           namaBank = data['nama_bank'];
           nomorRekening = data['nomor_rekening'];
-          namaPemilikRekening = data['nama_pemilik_rekening'];
           isLoading = false;
         });
       } else {
@@ -170,6 +167,7 @@ class _DetailAkunVerifState extends State<DetailAkunVerif> {
                         ),
 
                         // Nomor Rekening with edit icon
+
                         ProfileDetailRowWithIcon(
                           label: "Nomor Rekening", 
                           value: nomorRekening ?? "No rekening",
@@ -181,24 +179,6 @@ class _DetailAkunVerifState extends State<DetailAkunVerif> {
                           },
                         ),
 
-                        ProfileDetailRow(label: "Nama Pemilik Rekening", value: namaPemilikRekening ?? "Nama Pemilik"),
-                        SizedBox(height: 16),
-                        Container(
-                          width: double.infinity,
-                          child: MaterialButton(
-                            onPressed: () {
-                              // Action for edit profile
-                            },
-                            color: PrimaryColor,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            child: Text(
-                              "Edit Profile",
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, fontStyle: FontStyle.normal, color: Colors.white),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),

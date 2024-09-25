@@ -13,7 +13,7 @@ class PortofolioScreen extends StatefulWidget {
   PortofolioScreenState createState() => PortofolioScreenState();
 }
 
-class PortofolioScreenState extends State<PortofolioScreen> {
+class PortofolioScreenState extends State<PortofolioScreen> with RouteAware {
   List<int> investedProjectIds = [];
   bool isLoading = true;
   bool isInvestor = false; // Menyimpan status investor dari API
@@ -26,9 +26,31 @@ class PortofolioScreenState extends State<PortofolioScreen> {
     });
   }
 
+  // Menambahkan lifecycle untuk memanggil API setiap kali screen muncul kembali
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Daftarkan screen ini ke RouteObserver agar bisa mendeteksi perpindahan route
+    ModalRoute.of(context)?.settings?.name;
+    fetchUserInvestedProjects();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<String?> getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
   // Fungsi untuk mengambil data proyek yang sudah diinvest user dan status investor
   Future<void> fetchUserInvestedProjects() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
       String? token = await getToken(); // Ambil token dari storage
       final response = await http.get(
         Uri.parse('${baseUrl}api/user-invested-projects'),
@@ -63,12 +85,6 @@ class PortofolioScreenState extends State<PortofolioScreen> {
     }
   }
 
-  // Fungsi buat ambil token dari storage
-  Future<String?> getToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,7 +109,6 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  
                   if (!isInvestor)
                     Center(
                       child: Column(
@@ -123,7 +138,8 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                           SizedBox(height: 20),
                           // Gambar HG4 dengan padding
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Image.asset(
                               'images/HG4.png', // Pastikan path benar
                               fit: BoxFit.contain,
@@ -166,9 +182,7 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                         ],
                       ),
                     ),
-
                     4.height,
-
                     Container(
                       child: ListView.builder(
                         shrinkWrap: true,
@@ -182,7 +196,8 @@ class PortofolioScreenState extends State<PortofolioScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => DetailProyekInvest(
-                                    projectId: projectId, // Kirim ID proyek ke halaman detail
+                                    projectId:
+                                        projectId, // Kirim ID proyek ke halaman detail
                                   ),
                                 ),
                               );

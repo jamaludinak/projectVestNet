@@ -1,4 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:nb_utils/nb_utils.dart';
+
+import '../utils/Constant.dart';
 
 class BillHistoryScreen extends StatefulWidget {
   @override
@@ -7,6 +12,71 @@ class BillHistoryScreen extends StatefulWidget {
 
 class _BillHistoryScreenState extends State<BillHistoryScreen> {
   int selectedIndex = 0;
+  List<Map<String, dynamic>> paidBills = [];
+  List<Map<String, dynamic>> unpaidBills = [];
+  bool isLoading = true; // Tambahkan loading state
+
+  @override
+  void initState() {
+    super.initState();
+    fetchBillHistory(); // Ambil data tagihan saat screen dibuka
+  }
+
+  Future<String?> getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  // Fungsi untuk mengambil data dari API
+  Future<void> fetchBillHistory() async {
+    try {
+      String? token = await getToken();
+      final response = await http.get(
+        Uri.parse('${baseUrl}api/riwayat-pembayaran'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+
+        // Pisahkan data yang lunas dan belum lunas
+        List<Map<String, dynamic>> paid = [];
+        List<Map<String, dynamic>> unpaid = [];
+        for (var bill in data['data']) {
+          if (bill['is_verified'] == 1) {
+            paid.add({
+              "month": bill['tanggal'],
+              "amount": "Rp ${bill['tagihan']}",
+            });
+          } else {
+            unpaid.add({
+              "month": bill['tanggal'],
+              "amount": "Rp ${bill['tagihan']}",
+            });
+          }
+        }
+
+        setState(() {
+          paidBills = paid;
+          unpaidBills = unpaid;
+          isLoading = false; // Selesai loading
+        });
+      } else {
+        print("Failed to load bill history");
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +84,8 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
       appBar: AppBar(
         title: Text(
           "Riwayat Tagihan Internet",
-          style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w600),
+          style: TextStyle(
+              color: Colors.black, fontSize: 16, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -25,90 +96,103 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
           },
         ),
       ),
-      body: Column(
-        children: [
-          // Tab-like buttons for "LUNAS" and "BELUM LUNAS"
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Tengah di row
+      body: isLoading
+          ? Center(
+              child:
+                  CircularProgressIndicator()) // Menampilkan loading saat data belum diambil
+          : Column(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedIndex = 0;
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 30),
-                    decoration: BoxDecoration(
-                      color: selectedIndex == 0 ? Colors.blue : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.blue.shade200,
-                        width: 2,
+                // Tab-like buttons for "LUNAS" and "BELUM LUNAS"
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Tengah di row
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedIndex = 0;
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 30),
+                          decoration: BoxDecoration(
+                            color: selectedIndex == 0
+                                ? Colors.blue
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.blue.shade200,
+                              width: 2,
+                            ),
+                          ),
+                          child: Text(
+                            "LUNAS",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: selectedIndex == 0
+                                  ? Colors.white
+                                  : Colors.grey,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      "LUNAS",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: selectedIndex == 0 ? Colors.white : Colors.grey,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                      SizedBox(width: 10), // Berikan jarak antar tab
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedIndex = 1;
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 30),
+                          decoration: BoxDecoration(
+                            color: selectedIndex == 1
+                                ? Colors.blue
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.blue.shade200,
+                              width: 2,
+                            ),
+                          ),
+                          child: Text(
+                            "BELUM LUNAS",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: selectedIndex == 1
+                                  ? Colors.white
+                                  : Colors.grey,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-                SizedBox(width: 10), // Berikan jarak antar tab
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedIndex = 1;
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 30),
-                    decoration: BoxDecoration(
-                      color: selectedIndex == 1 ? Colors.blue : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.blue.shade200,
-                        width: 2,
-                      ),
-                    ),
-                    child: Text(
-                      "BELUM LUNAS",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: selectedIndex == 1 ? Colors.white : Colors.grey,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                // Body for the tab view
+                Expanded(
+                  child: selectedIndex == 0
+                      ? PaidBills(paidBills)
+                      : UnpaidBills(unpaidBills),
                 ),
-              
               ],
             ),
-          ),
-          // Body for the tab view
-          Expanded(
-            child: selectedIndex == 0 ? PaidBills() : UnpaidBills(),
-          ),
-        ],
-      ),
     );
   }
 }
 
 class PaidBills extends StatelessWidget {
-  final List<Map<String, String>> paidBills = [
-    {"month": "Juli 2024", "amount": "Rp 166,500"},
-    {"month": "Juni 2024", "amount": "Rp 166,500"},
-    {"month": "Mei 2024", "amount": "Rp 166,500"},
-    {"month": "April 2024", "amount": "Rp 166,500"},
-  ];
+  final List<Map<String, dynamic>> paidBills;
+
+  PaidBills(this.paidBills);
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +229,9 @@ class PaidBills extends StatelessWidget {
                 // Handle bill detail
               },
             ),
-            Divider(height: 1, color: Colors.grey.shade300), // Garis tipis di bawah ListTile
+            Divider(
+                height: 1,
+                color: Colors.grey.shade300), // Garis tipis di bawah ListTile
           ],
         );
       },
@@ -154,9 +240,9 @@ class PaidBills extends StatelessWidget {
 }
 
 class UnpaidBills extends StatelessWidget {
-  final List<Map<String, String>> unpaidBills = [
-    {"month": "Agustus 2024", "amount": "Rp 166,500"},
-  ];
+  final List<Map<String, dynamic>> unpaidBills;
+
+  UnpaidBills(this.unpaidBills);
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +279,9 @@ class UnpaidBills extends StatelessWidget {
                 // Handle bill detail
               },
             ),
-            Divider(height: 1, color: Colors.grey.shade300), // Garis tipis di bawah ListTile
+            Divider(
+                height: 1,
+                color: Colors.grey.shade300), // Garis tipis di bawah ListTile
           ],
         );
       },
