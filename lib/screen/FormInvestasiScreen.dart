@@ -421,7 +421,6 @@ class FormInvestasiState extends State<FormInvestasi> {
                                             color: Colors.black,
                                           ),
                                         ),
-                                        SizedBox(height: 8),
                                         Row(
                                           children: [
                                             Expanded(

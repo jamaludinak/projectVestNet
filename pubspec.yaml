@@ -1,6 +1,6 @@
 name: vestnett
 description: A new Flutter project.
-version: 2.0.0
+version: 1.0.0
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -49,13 +49,14 @@ dev_dependencies:
     sdk: flutter
   mobx_codegen: ^2.4.0
   build_runner: ^2.4.6
-  flutter_launcher_icons: ^0.10.0
+  flutter_launcher_icons: "^0.14.1"
   #flutter packages pub run build_runner build --delete-conflicting-outputs
 
-flutter_icons:
-  android: true
+flutter_launcher_icons:
+  android: "launcher_icon"
   ios: true
   image_path: "images/VestNetlogo1.png"
+  min_sdk_android: 16 # android min sdk min:16, default 21
 
 flutter:
   uses-material-design: true

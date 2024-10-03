@@ -254,17 +254,18 @@ class _FormulirTarikDanaState extends State<FormulirTarikDana> {
                       itemCount: _saldoInvestasi.length,
                       itemBuilder: (context, index) {
                         var item = _saldoInvestasi[index];
-                        var saldo = item['saldo']; // Saldo dari API
+                        var saldo = item['saldo'];
                         return GestureDetector(
                           onTap: () {
                             setState(() {
                               _selectedInvestasiId =
                                   item['id_investasi'].toString();
-                              _selectedSaldo =
-                                  saldo; // Menyimpan saldo yang dipilih
+                              _selectedSaldo = saldo;
                             });
                           },
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration:
+                                Duration(milliseconds: 300), // Animasi smooth
                             decoration: BoxDecoration(
                               color: _selectedInvestasiId ==
                                       item['id_investasi'].toString()
